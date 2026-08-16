@@ -1,0 +1,27 @@
+.statusbar {
+    display: inline-block;
+    position: relative;
+    border: 0;
+    font-size: 0.875rem;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.bar {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    height: 3px;
+    transform: translateY(-100%);
+    transition: width 0.3s ease;
+}
+
+.onlinebar {
+    display: inline-block;
+    border: 1px solid var(--red);
+    border-radius: 4px;
+    padding: 0 3px;
+    color: var(--red);
+    font-size: 14px;
+    font-weight: bold;
+}
