@@ -30,6 +30,12 @@ Firefox 无法使用此插件，因为它不支持 Service Worker。
   - Ubuntu 20.04.6 LTS
 - 扩展使用环境
   - Microsoft Edge 150.0.4078.105
+- 前端编译环境
+  - Node.js 24.14.0
+  - NPM 11.19.0
+  - React 19.2.8
+  - Vite 8.2.0
+  - 详见 package.json 和 package-lock.json
 
 ## 常见无需担心的问题
 
