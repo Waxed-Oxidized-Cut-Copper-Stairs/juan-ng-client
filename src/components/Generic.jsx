@@ -1,0 +1,347 @@
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement } from "react";
+import { createPortal } from "react-dom";
+import styles from "./Generic.module.css";
+import { acquireUserProfile } from "../protocol_v2";
+
+/**
+ * @param {number} p
+ * @returns {string}
+ */
+export function percentToColor(p) {
+    p = Math.max(0, Math.min(1, p));
+    const stops = [
+        // [0, 0xd8, 0x38, 0x41],
+        // [0.3, 0xff, 0x57, 0x22],
+        // [0.5, 0xff, 0xc1, 0x07],
+        // [0.8, 0x8b, 0xc3, 0x4a],
+        // [1, 0x4c, 0xaf, 0x50],
+        [0, 0xd3, 0x2f, 0x2f],
+        [0.2, 0xe6, 0x4a, 0x19],
+        [0.4, 0xf5, 0x7c, 0x00],
+        [0.6, 0xff, 0xa0, 0x00],
+        [0.8, 0x7c, 0xb3, 0x42],
+        [1, 0x38, 0x8e, 0x3c],
+    ];
+    let start = stops[0], end = stops[0];
+    for (let i = 1; i < stops.length; ++i) {
+        if (stops[i - 1][0] <= p && p <= stops[i][0]) {
+            start = stops[i - 1];
+            end = stops[i];
+            break;
+        }
+    }
+    const ratio = (p - start[0]) / (end[0] - start[0]);
+    const r = start[1] * (1 - ratio) + end[1] * ratio;
+    const g = start[2] * (1 - ratio) + end[2] * ratio;
+    const b = start[3] * (1 - ratio) + end[3] * ratio;
+    const toHex = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+export function percentToString(p, q) {
+    if (p == 0) return "0%";
+    else if (p == q) return "100%";
+    return `${(p / q * 100).toFixed(0)}%`;
+}
+
+export function getPid(href = null) {
+    const url = href ?? (new URL(location.href, "https://www.luogu.com.cn"));
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.hostname === "www.luogu.com.cn") {
+        if (url.pathname.startsWith("/problem/")) {
+            const urls = url.pathname.split("/").filter(Boolean);
+            const pid = urls.at(-1);
+            if (urls.at(-2) !== "problem" || pid === "list" || pid === "random" || pid === "new" || pid === undefined) return null;
+            return pid;
+        }
+    }
+    if (url.hostname === "www.luogu.org") {
+        if (url.pathname.startsWith("/problemnew/show/")) {
+            return url.pathname.split("/").filter(Boolean).at(-1);
+        }
+    }
+    return null;
+}
+
+export function ShadowRoot({ children }) {
+    const hostRef = useRef(null);
+    const [root, setRoot] = useState(null);
+    useEffect(() => {
+        if (hostRef.current && !hostRef.current.shadowRoot) {
+            setRoot(hostRef.current.attachShadow({ mode: "open" }));
+        }
+    }, []);
+    return (
+        <div ref={hostRef}>
+            {root && createPortal(children, root)}
+        </div>
+    );
+}
+
+export function Button({ children, onClick }) {
+    return <button className={styles.button} onClick={onClick}>{children}</button>
+}
+export function LineEdit({ onChange }) {
+    return <input type="text" className={styles.lineedit} onChange={() => onChange()} />
+}
+/**
+ * @param {Object} options
+ * @param {[number, string][]} [options.items]
+ * @param {[number,string]} [options.selected]
+ * @param {any} [options.setSelected]
+ */
+export function ComboBox({ items, selected, setSelected }) {
+    const [open, setOpen] = useState(false);
+    const [top, setTop] = useState(0);
+    const [left, setLeft] = useState(0);
+    const containerRef = useRef(null);
+    const targetRef = useRef(null);
+    const popupRef = useRef(null);
+    useLayoutEffect(() => {
+        if (open && targetRef.current && popupRef.current) {
+            requestAnimationFrame(() => {
+                /** @type {DOMRect} */
+                const rect = targetRef.current.getBoundingClientRect();
+                setTop(rect.bottom + 5);
+                setLeft((rect.left + rect.right - popupRef.current.offsetWidth) / 2);
+            });
+        }
+    }, [open]);
+    useEffect(() => {
+        if (open) {
+            const abort = new AbortController();
+            document.addEventListener("mousedown", (e) => {
+                const path = e.composedPath();
+                if (!containerRef.current || !path.includes(containerRef.current)) {
+                    setOpen(false);
+                }
+            }, { signal: abort.signal });
+            return () => {
+                abort.abort();
+            }
+        }
+    }, [open]);
+    return (
+        <div className={styles.combobox} ref={containerRef}>
+            <div
+                ref={targetRef}
+                className={styles.combobox_body}
+                onClick={() => {
+                    if (open) setOpen(false);
+                    else setOpen(true);
+                }}
+            >{selected[1]}</div>
+            <FadeAnimation visible={open} jumpin={true}>
+                <div
+                    ref={popupRef}
+                    className={styles.combobox_popup}
+                    style={{
+                        left: `${left}px`,
+                        top: `${top}px`
+                    }}
+                >
+                    {items.map((val) => {
+                        return (
+                            <div key={val[0]} className={styles.combobox_item} onClick={() => {
+                                setSelected(val);
+                                setOpen(false);
+                            }}>{val[1]}</div>
+                        )
+                    })}
+                </div>
+            </FadeAnimation>
+        </div>
+    )
+}
+
+/**
+ * @param {Object} options
+ * @param {Account} [options.account]
+ */
+export function Username({ account, ...rest }) {
+    const [username, setUsername] = useState();
+    const uid = account.luogu;
+    useEffect(() => {
+        (async () => {
+            const profile = await acquireUserProfile(uid);
+            if (!profile) return;
+            setUsername(profile.name);
+        })();
+    }, []);
+    return (
+        <span {...rest}>{username ?? `UID ${account.luogu}`}</span>
+    )
+}
+
+/**
+ * 此组件要求只有一个子组件，且子组件可以接收 ref。
+ */
+export default function FadeAnimation({ children, visible, jumpin = false }) {
+    const nodeRef = useRef(null);
+    const timerRef = useRef(null);
+    const oldDisplayRef = useRef("");
+    const clearAnimation = useCallback(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+    }, []);
+    const mergedRef = useCallback((node) => {
+        nodeRef.current = node;
+        const childRef = children.ref;
+        if (typeof childRef === "function") {
+            childRef(node);
+        } else if (childRef && typeof childRef === "object") {
+            childRef.current = node;
+        }
+    }, [children.ref]);
+    useLayoutEffect(() => {
+        /** @type {HTMLElement} */
+        const node = nodeRef.current;
+        if (!node) return;
+        clearAnimation();
+        if (visible) {
+            node.style.display = oldDisplayRef.current;
+            node.style.opacity = "0";
+            if (jumpin) node.style.transform = "translateY(-5px)";
+            // 强制回流
+            void node.offsetHeight;
+            requestAnimationFrame(() => {
+                node.style.opacity = "1";
+                if (jumpin) node.style.transform = "translateY(0)";
+            });
+        } else {
+            node.style.opacity = "0";
+            if (jumpin) node.style.transform = "translateY(-5px)";
+            timerRef.current = setTimeout(() => {
+                oldDisplayRef.current = node.style.display;
+                node.style.display = "none";
+                timerRef.current = null;
+            }, 150);
+        }
+    }, [visible, jumpin, clearAnimation]);
+    useEffect(() => {
+        /** @type {HTMLElement} */
+        const node = nodeRef.current;
+        if (!node) return;
+        oldDisplayRef.current = node.style.display;
+        node.style.opacity = visible ? "1" : "0";
+        // 强制回流，保证初始状态正确
+        void node.offsetHeight;
+        node.classList.add(styles.fade);
+    }, []);
+    return cloneElement(Children.only(children), { ref: mergedRef });
+}
+
+/**
+ * 注意：使用此组件时不应该手动传入 visible 和 targetRef 参数
+ * @param {Object} options
+ * @param {"left" | "top"} [options.anchor]
+ */
+export function FloatDiv({ children, anchor = "left", visible, targetRef, ...rest }) {
+    const popupRef = useRef(null);
+    const [top, setTop] = useState(0);
+    const [left, setLeft] = useState(0);
+    useLayoutEffect(() => {
+        if (visible && targetRef.current && popupRef.current) {
+            requestAnimationFrame(() => {
+                /** @type {DOMRect} */
+                const rect = targetRef.current.getBoundingClientRect();
+                if (anchor === "top") {
+                    setTop(rect.top - popupRef.current.offsetHeight - 5);
+                    setLeft((rect.left + rect.right - popupRef.current.offsetWidth) / 2);
+                } else {
+                    setTop((rect.top + rect.bottom - popupRef.current.offsetHeight) / 2);
+                    setLeft(rect.left - popupRef.current.offsetWidth - 5);
+                }
+            });
+        }
+    }, [visible, targetRef]);
+    return (
+        <FadeAnimation visible={visible}>
+            <div
+                ref={popupRef}
+                style={{
+                    position: "fixed",
+                    top: top,
+                    left: left,
+                    zIndex: 1000,
+                }}
+                className={styles.floatdiv}
+                {...rest}
+            >
+                {children}
+            </div>
+        </FadeAnimation>
+    );
+}
+/**
+ * 注意：使用此组件时不应该手动传入 targetRef 参数
+ */
+export function FloatDivBinding({ children, targetRef, ...rest }) {
+    return <div ref={targetRef} {...rest}>{children}</div>
+}
+export function FloatDivContainer({ children, holdFloat = true }) {
+    const [visible, setVisible] = useState(false);
+    const targetRef = useRef(null);
+    const isHoveringBinding = useRef(false);
+    const isHoveringFloat = useRef(false);
+    const hideTimerRef = useRef(null);
+    function clearHideTimer() {
+        if (hideTimerRef.current) {
+            clearTimeout(hideTimerRef.current);
+            hideTimerRef.current = null;
+        }
+    };
+    function tryHide() {
+        if (!isHoveringBinding.current && !isHoveringFloat.current) {
+            clearHideTimer();
+            hideTimerRef.current = setTimeout(() => {
+                setVisible(false);
+                hideTimerRef.current = null;
+            }, 100);
+        }
+    };
+    useEffect(() => {
+        return () => clearHideTimer();
+    }, []);
+    const processedChildren = Children.map(children, (child) => {
+        if (child.type === FloatDivBinding) {
+            return cloneElement(child, {
+                targetRef,
+                onMouseEnter: (e) => {
+                    clearHideTimer();
+                    isHoveringBinding.current = true;
+                    setVisible(true);
+                    child.props.onMouseEnter?.(e);
+                },
+                onMouseLeave: (e) => {
+                    isHoveringBinding.current = false;
+                    tryHide();
+                    child.props.onMouseLeave?.(e);
+                },
+            });
+        } else if (child.type === FloatDiv) {
+            return cloneElement(child, {
+                visible,
+                targetRef,
+                onMouseEnter: (e) => {
+                    if (holdFloat) {
+                        clearHideTimer();
+                        isHoveringFloat.current = true;
+                        setVisible(true);
+                    }
+                    child.props.onMouseEnter?.(e);
+                },
+                onMouseLeave: (e) => {
+                    if (holdFloat) {
+                        isHoveringFloat.current = false;
+                        tryHide();
+                    }
+                    child.props.onMouseLeave?.(e);
+                },
+            });
+        }
+        return child;
+    });
+    return <>{processedChildren}</>
+}

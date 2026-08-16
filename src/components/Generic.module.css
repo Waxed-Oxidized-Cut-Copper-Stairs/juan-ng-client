@@ -1,0 +1,79 @@
+.button {
+    color: var(--text-color);
+    background-color: var(--background);
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1;
+    transition: filter 0.1s ease-in-out;
+}
+
+.button:hover {
+    filter: var(--filter-lv1);
+}
+
+.button:active {
+    filter: var(--filter-lv2);
+}
+
+.lineedit {}
+
+.combobox {
+    display: inline-block;
+    vertical-align: middle;
+    width: 240px;
+}
+
+.combobox_body {
+    background-color: var(--background);
+    box-sizing: border-box;
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    padding: 0 8px;
+    width: 240px;
+    height: 30px;
+    line-height: 28px;
+    overflow: auto;
+    cursor: pointer;
+}
+
+.combobox_popup {
+    background-color: var(--background);
+    box-sizing: border-box;
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    position: fixed;
+    width: 240px;
+    overflow: auto;
+    z-index: 800;
+}
+
+.combobox_item {
+    padding: 0 8px;
+    cursor: pointer;
+}
+
+.combobox_item:hover {
+    filter: var(--filter-lv1);
+}
+
+.combobox_item:active {
+    filter: var(--filter-lv2);
+}
+
+.fade {
+    transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.floatdiv {
+    background-color: var(--background);
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow);
+    box-sizing: border-box;
+    padding: 3px;
+}
