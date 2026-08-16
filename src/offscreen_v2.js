@@ -122,6 +122,12 @@ function checkProgress() {
     send("route-to-active-tabs", { type: "progress", data: { done: lgDone, total: lgUIDs.length } });
     send("route-to-active-tabs", { type: "configured" });
 }
+async function flushCache() {
+    await luoguDB.expireAll();
+}
+async function clearCache() {
+    await luoguDB.clear();
+}
 
 let mainloopActive = false;
 async function mainloop() {
@@ -183,10 +189,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ done: lgDone, total: lgUIDs.length });
             break;
         case "flush-cache":
-            // clear();
+            flushCache();
             break;
-        case "clear-cache-physically":
-            // clearPhysically();
+        case "clear-cache":
+            clearCache();
             break;
         default: {
             error("Offscreen 无法识别的消息", message);
