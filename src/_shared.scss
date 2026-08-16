@@ -1,0 +1,39 @@
+@mixin base-theme {
+    --red: #aa0000;
+    --yellow: #ffc021;
+    --green: #008b00;
+    --blue: #3498db;
+    --fog: #ddd;
+    --haze: #bbb;
+    --text-color: black;
+    --light-text: #7f7f7f;
+    --background: white;
+    --shadow: #1a1a1a1a;
+    --filter-lv1: brightness(0.875);
+    --filter-lv2: brightness(0.75);
+    --filter-lv3: brightness(0.5);
+
+    @media (prefers-color-scheme: dark) {
+        & {
+            --red: #ff2233;
+            --yellow: #dcae00;
+            --green: #22b822;
+            --blue: #46a1de;
+            --fog: #666;
+            --haze: #000;
+            --text-color: #eee;
+            --light-text: #aaa;
+            --background: #222;
+            --shadow: #000;
+            --filter-lv1: brightness(1.125);
+            --filter-lv2: brightness(1.25);
+            --filter-lv3: brightness(1.5);
+        }
+    }
+}
+
+@mixin base-font {
+    font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+}

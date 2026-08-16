@@ -1,0 +1,30 @@
+@use "./shared";
+
+:root {
+    @include shared.base-theme;
+}
+
+body {
+    font-size: 0.875em;
+    width: 400px;
+    margin: 10px;
+    background-color: var(--background);
+    color: var(--text-color);
+}
+
+a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+a:hover {
+    filter: var(--filter-lv1);
+}
+
+a:active {
+    filter: var(--filter-lv2);
+}
+
+ul {
+    margin: 8px 0;
+}
