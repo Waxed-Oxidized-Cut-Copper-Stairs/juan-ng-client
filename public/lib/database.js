@@ -88,7 +88,6 @@ class CacheDB {
             const store = transaction.objectStore(this.timestampkey);
             const request = store.get(key);
             await transactionWrapper(transaction);
-            console.log("stp", request.result);
             return (request.result === null || request.result > (t ?? Date.now() + 10000));
         } catch (err) {
             throw new DBError("数据库异常", { cause: err });
@@ -121,7 +120,6 @@ class CacheDB {
             const store2 = transaction.objectStore(this.storekey);
             store1.put(expiration, key);
             store2.put(val, key);
-            console.log("set", key, expiration);
             await transactionWrapper(transaction);
         } catch (err) {
             throw new DBError("数据库异常", { cause: err });

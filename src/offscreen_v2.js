@@ -115,16 +115,13 @@ let mainloopActive = false;
 async function mainloop() {
     if (mainloopActive) return;
     mainloopActive = true;
-    console.log("mainloop");
     try {
         const promises = [];
         lgDone = 0;
         for (const uid of lgUIDs) {
             if (await luoguDB.satisfied(`${uid}`)) {
-                console.log("ok", uid);
                 ++lgDone;
             } else {
-                console.log("todo", uid);
                 promises.push(crawlLuogu(uid)
                     .then(() => {
                         ++lgDone;
@@ -145,7 +142,6 @@ for (const uid of lgUIDs) {
     /** @type {LuoguPracticeNew} */
     const data = await luoguDB.get(`${uid}`);
     if (!data) continue;
-    console.log("init", uid);
     const { passed, submitted, name, privacy } = data;
     for (const prob of submitted) {
         submittedMap.add(prob.pid, uid);
