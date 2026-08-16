@@ -8,6 +8,9 @@ import { randint } from "../public/lib/random.js";
 const proxyURL = "http://127.0.0.1:6969";
 console.log(`服务端地址 ${proxyURL}`);
 
+const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
+const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
+
 /** @type {Group[]}} */
 const users = await (async () => {
     const resp = await fetch(`${proxyURL}/data`);
@@ -61,21 +64,29 @@ const submittedMap = new PidToUid();
 let luoguLock = Promise.resolve();
 /** @param {number} uid */
 async function crawlLuogu(uid) {
+    const key = `${uid}`;
     const nxt = luoguLock.then(async () => {
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
-        const resp = await fetch(new URL("proxy", proxyURL), { headers: { "x-target-url": url } });
+        let resp;
+        try {
+            resp = await fetch(new URL("proxy", proxyURL), { headers: { "x-target-url": url } });
+        } catch (err) {
+            send("notify", { title: "联考水表机 后端错误", msg: `通过代理服务器请求 ${url} 出现错误 ${err}` })
+            error(err, `通过代理服务器请求 ${url} 时出现此错误`);
+            return;
+        }
         if (!resp.ok) {
+            error(`通过代理服务器请求 ${url} 返回 ${resp.status} ${resp.statusText}`);
             if (400 <= resp.status && resp.status < 500) {
-                ;
+                await luoguDB.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
             } else if (500 <= resp.status && resp.status < 600) {
-                ;
-            } else {
-                ;
+                await luoguDB.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
             }
+            return;
         }
         return await resp.text();
     });
-    luoguLock = nxt.then(sleep(randint(5000, 8000)));
+    luoguLock = nxt.then(() => sleep(randint(5000, 8000))).catch(() => { });
     const data = await nxt;
     if (!data) return;
     const parser = new DOMParser();
@@ -99,7 +110,7 @@ async function crawlLuogu(uid) {
         ret.passed.push(prob);
     }
     profiles[uid] = { name: user.name, privacy: privacy ?? false };
-    await luoguDB.set(`${uid}`, ret);
+    await luoguDB.set(key, ret);
 }
 
 function send(type, data) {
@@ -108,7 +119,8 @@ function send(type, data) {
 
 let lgDone = 0;
 function checkProgress() {
-    ;
+    send("route-to-active-tabs", { type: "progress", data: { done: lgDone, total: lgUIDs.length } });
+    send("route-to-active-tabs", { type: "configured" });
 }
 
 let mainloopActive = false;
@@ -168,11 +180,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse(profiles[data] ?? {});
             break;
         case "query-progress":
-            // if (cacheDB.closed) {
-            //     sendResponse({ total: -1 });
-            // } else {
-            //     sendResponse({ done: virtualDone, total: accounts.length });
-            // }
+            sendResponse({ done: lgDone, total: lgUIDs.length });
             break;
         case "flush-cache":
             // clear();
