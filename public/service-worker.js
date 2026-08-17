@@ -1,25 +1,30 @@
-import { error } from "./lib/core.js";
+import { error, warning } from "./lib/core.js";
 
-/** @type {Promise<void> | null} */
-let offscreenPromise = Promise.resolve();
-async function createOffscreen() {
-    offscreenPromise = offscreenPromise.then(async () => {
-        if (await chrome.offscreen.hasDocument()) return;
-        await chrome.offscreen.createDocument({
-            url: "offscreen.html",
-            reasons: ["WORKERS"],
-            justification: "需要常驻 Worker 执行爬取任务",
-        });
+const offscreenReady = (async () => {
+    if (await chrome.offscreen.hasDocument()) return;
+    await chrome.offscreen.createDocument({
+        url: "offscreen.html",
+        reasons: ["WORKERS"],
+        justification: "需要常驻 Worker 执行爬取任务",
     });
-    return offscreenPromise;
-}
-async function killOffscreen() {
-    offscreenPromise = offscreenPromise.then(async () => {
-        if (!await chrome.offscreen.hasDocument()) return;
-        await chrome.offscreen.closeDocument();
+    const promise = new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            warning("10s 内仍未正常启动 Offscreen");
+        }, 10000);
+        const listener = (message, sender, sendResponse) => {
+            const { dst, type } = message;
+            if (dst !== "sw") return;
+            if (type === "offscreen-ready") {
+                clearTimeout(timer);
+                chrome.runtime.onMessage.removeListener(listener);
+                resolve();
+            }
+        };
+        chrome.runtime.onMessage.addListener(listener);
     });
-    return offscreenPromise;
-}
+    chrome.runtime.sendMessage({ dst: "offscreen", type: "is-ready" });
+    await promise;
+})();
 
 /**
  * @param {Promise} promise
@@ -41,7 +46,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "query-pid":
         case "query-profile":
         case "query-progress": {
-            sendResponseWrapper(createOffscreen().then(async () => {
+            sendResponseWrapper(offscreenReady.then(async () => {
                 return chrome.runtime.sendMessage({ dst: "offscreen", type, data });
             }).then(async resp => {
                 sendResponse(resp);
@@ -87,15 +92,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case "flush-cache":
         case "clear-cache": {
-            createOffscreen().then(() => {
+            offscreenReady.then(() => {
                 chrome.runtime.sendMessage({ dst: "offscreen", type }).catch(err => null);
             }, err => error(err));
             break;
         }
-        case "kill-offscreen": {
-            killOffscreen();
+        case "offscreen-ready":
             break;
-        }
         default: {
             error("Service Worker 无法识别的消息", message);
             break;

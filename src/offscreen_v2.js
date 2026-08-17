@@ -12,6 +12,21 @@ const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
 
+const tempListener = (message, sender, sendResponse) => {
+    const { dst, type, data } = message;
+    if (dst !== "offscreen") return;
+    switch (type) {
+        case "is-ready":
+            sendResponse(false);
+            break;
+        default: {
+            error("Offscreen 无法识别的消息", message);
+            break;
+        }
+    }
+};
+chrome.runtime.onMessage.addListener(tempListener);
+
 /** @type {Group[]}} */
 const users = await (async () => {
     const resp = await fetch(`${proxyURL}/data`);
@@ -179,6 +194,7 @@ for (const uid of lgUIDs) {
     profiles[uid] = { name, privacy };
 }
 
+chrome.runtime.onMessage.removeListener(tempListener);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "offscreen") return;
@@ -205,10 +221,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "clear-cache":
             clearCache();
             break;
+        case "is-ready":
+            chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });
+            break;
         default: {
             error("Offscreen 无法识别的消息", message);
             break;
         }
     }
 });
+chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });
 mainloop();
