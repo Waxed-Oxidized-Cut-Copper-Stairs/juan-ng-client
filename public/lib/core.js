@@ -28,13 +28,17 @@ function cwarning(...obj) {
     console.warn(`%c${fmtDate()} %c[警告]`, "color: #66ccff", "color: yellow", ...obj);
 }
 function error(...obj) {
-    console.groupCollapsed(`%c${fmtShortDate()} %c[错误]`, "color: #66ccff", "color: red", ...obj);
+    console.groupCollapsed(`%c${fmtShortDate()} %c[错误]`, "color: #66ccff", "color: red", obj[0]);
+    for (let i = 1; i < obj.length; ++i)
+        console.log(obj[i]);
     console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
     console.trace();
     console.groupEnd();
 }
 function warning(...obj) {
-    console.groupCollapsed(`%c${fmtShortDate()} %c[警告]`, "color: #66ccff", "color: yellow", ...obj);
+    console.groupCollapsed(`%c${fmtShortDate()} %c[警告]`, "color: #66ccff", "color: yellow", obj[0]);
+    for (let i = 1; i < obj.length; ++i)
+        console.log(obj[i]);
     console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
     console.trace();
     console.groupEnd();
