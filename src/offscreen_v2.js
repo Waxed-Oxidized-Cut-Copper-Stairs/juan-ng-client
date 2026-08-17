@@ -188,7 +188,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             break;
         case "query-profile":
-            sendResponse(profiles[data] ?? {});
+            sendResponse(profiles[data]);
             break;
         case "query-progress":
             sendResponse({ done: lgDone, total: lgUIDs.length });
