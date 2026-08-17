@@ -123,7 +123,10 @@ function send(type, data) {
 }
 
 let lgDone = 0;
+let lasDone = 0;
 function checkProgress() {
+    if (lgDone == lasDone) return;
+    lasDone = lgDone;
     send("route-to-active-tabs", { type: "progress", data: { done: lgDone, total: lgUIDs.length } });
     send("route-to-active-tabs", { type: "configured" });
 }
