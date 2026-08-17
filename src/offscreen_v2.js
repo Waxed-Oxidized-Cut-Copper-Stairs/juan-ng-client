@@ -47,6 +47,9 @@ const atcoderDB = new CacheDB("AtCoder");
 const codeforcesDB = new CacheDB("CodeForces");
 await Promise.allSettled([luoguDB.init, atcoderDB.init, codeforcesDB.init]);
 
+function luoguKey(uid) { return `${uid}`; }
+function codeforcesKey(handle) { return `${handle}.status`; }
+
 /** @type {Object<number, LuoguProfileNew>} */
 let profiles = {};
 
@@ -83,7 +86,7 @@ let luoguLock = Promise.resolve();
  * @param {number | null} duration
  */
 async function crawlLuogu(uid, duration = null) {
-    const key = `${uid}`;
+    const key = luoguKey(uid);
     const nxt = luoguLock.then(async () => {
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
         let resp;
@@ -160,7 +163,7 @@ async function mainloop() {
         const promises = [];
         lgDone = 0;
         for (const uid of lgUIDs) {
-            if (await luoguDB.satisfied(`${uid}`)) {
+            if (await luoguDB.satisfied(luoguKey(uid))) {
                 ++lgDone;
             } else {
                 promises.push(crawlLuogu(uid)
@@ -181,7 +184,7 @@ async function mainloop() {
 
 for (const uid of lgUIDs) {
     /** @type {LuoguPracticeNew} */
-    const data = await luoguDB.get(`${uid}`);
+    const data = await luoguDB.get(luoguKey(uid));
     if (!data) continue;
     const { passed, submitted, name, privacy } = data;
     for (const prob of submitted) {
