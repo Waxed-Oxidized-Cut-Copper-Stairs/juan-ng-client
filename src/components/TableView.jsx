@@ -52,7 +52,7 @@ function TitleView({ users, profiles, count }) {
  * @param {Object} options
  * @param {Account} [options.account]
  * @param {LuoguProfileNew} [options.profile]
- * @param {{problem: LuoguProblem, situation: Situation}[]} [options.problems]
+ * @param {{problem: LuoguProblem, situation: { passed: Set<number>, submitted: Set<number> }}[]} [options.problems]
  */
 function RowView({ account, profile, problems }) {
     return (
@@ -60,8 +60,8 @@ function RowView({ account, profile, problems }) {
             {problems.map(({ problem, situation }) => {
                 return (
                     <div key={problem.pid} className={styles.cell}>
-                        {situation[0].has(account.luogu) && !situation[1].has(account.luogu) && <div className={styles.submitted}>✗</div>}
-                        {situation[1].has(account.luogu) && <div className={styles.passed}>✓</div>}
+                        {situation.submitted.has(account.luogu) && !situation[1].has(account.luogu) && <div className={styles.submitted}>✗</div>}
+                        {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
                     </div>
                 )
             })}
@@ -92,8 +92,17 @@ export default function TableView({ users, problems }) {
             const idx = newProb.length;
             newProb.push({ problem });
             promises.push(acquireProblem(problem.pid).then((situation) => {
-                if (!situation) return;
-                newProb[idx].situation = [new Set(situation[0]), new Set(situation[1])];
+                if (situation) {
+                    newProb[idx].situation = {
+                        passed: new Set(situation.passed),
+                        submitted: new Set(situation.submitted)
+                    };
+                } else {
+                    newProb[idx].situation = {
+                        passed: new Set(),
+                        submitted: new Set()
+                    };
+                }
             }));
         }
         for (const account of users) {
@@ -138,7 +147,7 @@ export default function TableView({ users, problems }) {
             if (profile && profile.privacy) val.set(uid, -1);
             else {
                 let cnt = 0;
-                for (const { situation } of prob) if (situation[1].has(uid)) ++cnt;
+                for (const { situation } of prob) if (situation.passed.has(uid)) ++cnt;
                 val.set(uid, cnt);
             }
         }

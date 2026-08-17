@@ -54,7 +54,8 @@ const cachedProfiles = new Map();
 async function acquireUserProfile(uid) {
     if (cachedProfiles.has(uid)) return cachedProfiles.get(uid);
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-profile", data: uid }))).then(ret => {
-        if (ret?.uid) cachedProfiles.set(uid, ret);
+        if (!ret) return null;
+        cachedProfiles.set(uid, ret);
         return ret;
     });
 }
