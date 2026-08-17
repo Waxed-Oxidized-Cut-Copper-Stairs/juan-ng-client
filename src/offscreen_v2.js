@@ -79,6 +79,22 @@ class PidToUid {
 };
 const passedMap = new PidToUid();
 const submittedMap = new PidToUid();
+/**
+ * @param {string} pid
+ * @param {number} uid
+ */
+function addPassed(pid, uid) {
+    submittedMap.del(pid, uid);
+    passedMap.add(pid, uid);
+}
+/**
+ * @param {string} pid
+ * @param {number} uid
+ */
+function addSubmitted(pid, uid) {
+    if (passedMap.get(pid)?.has(uid)) return;
+    submittedMap.add(pid, uid);
+}
 
 let luoguLock = Promise.resolve();
 /**
@@ -118,20 +134,12 @@ async function crawlLuogu(uid, duration = null) {
     const { passed, submitted, user, privacy } = content.data;
     /** @type {LuoguPracticeNew} */
     const ret = {
-        passed: [],
-        submitted: [],
+        passed, submitted,
         name: user.name,
         privacy: privacy ?? false
     }
-    for (const prob of submitted) {
-        submittedMap.add(prob.pid, uid);
-        ret.submitted.push(prob);
-    }
-    for (const prob of passed) {
-        submittedMap.del(prob.pid, uid);
-        passedMap.add(prob.pid, uid);
-        ret.passed.push(prob);
-    }
+    for (const prob of submitted) addSubmitted(prob.pid, uid);
+    for (const prob of passed) addPassed(prob.pid, uid);
     profiles[uid] = { name: user.name, privacy: privacy ?? false };
     await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
 }
@@ -187,13 +195,8 @@ for (const uid of lgUIDs) {
     const data = await luoguDB.get(luoguKey(uid));
     if (!data) continue;
     const { passed, submitted, name, privacy } = data;
-    for (const prob of submitted) {
-        submittedMap.add(prob.pid, uid);
-    }
-    for (const prob of passed) {
-        submittedMap.del(prob.pid, uid);
-        passedMap.add(prob.pid, uid);
-    }
+    for (const prob of submitted) addSubmitted(prob.pid, uid);
+    for (const prob of passed) addPassed(prob.pid, uid);
     profiles[uid] = { name, privacy };
 }
 
