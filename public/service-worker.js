@@ -86,7 +86,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         }
         case "flush-cache":
-        case "clear-cache-physically": {
+        case "clear-cache": {
             createOffscreen().then(() => {
                 chrome.runtime.sendMessage({ dst: "offscreen", type }).catch(err => null);
             }, err => error(err));
