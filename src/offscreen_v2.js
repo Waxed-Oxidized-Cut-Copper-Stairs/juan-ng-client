@@ -8,6 +8,7 @@ import { randint } from "../public/lib/random.js";
 const proxyURL = "http://127.0.0.1:6969";
 console.log(`服务端地址 ${proxyURL}`);
 
+const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
 
@@ -62,8 +63,11 @@ const passedMap = new PidToUid();
 const submittedMap = new PidToUid();
 
 let luoguLock = Promise.resolve();
-/** @param {number} uid */
-async function crawlLuogu(uid) {
+/**
+ * @param {number} uid
+ * @param {number | null} duration
+ */
+async function crawlLuogu(uid, duration = null) {
     const key = `${uid}`;
     const nxt = luoguLock.then(async () => {
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
@@ -73,6 +77,7 @@ async function crawlLuogu(uid) {
         } catch (err) {
             send("notify", { title: "联考水表机 后端错误", msg: `通过代理服务器请求 ${url} 出现错误 ${err}` })
             error(err, `通过代理服务器请求 ${url} 时出现此错误`);
+            await luoguDB.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
             return;
         }
         if (!resp.ok) {
@@ -110,7 +115,7 @@ async function crawlLuogu(uid) {
         ret.passed.push(prob);
     }
     profiles[uid] = { name: user.name, privacy: privacy ?? false };
-    await luoguDB.set(key, ret);
+    await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
 function send(type, data) {
