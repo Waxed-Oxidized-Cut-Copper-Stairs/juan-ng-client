@@ -29,7 +29,7 @@ function HeaderView({ problems, ref }) {
 /**
  * @param {Object} options
  * @param {Account[]} [options.users]
- * @param {Map<number, LuoguProfile>} [options.profiles]
+ * @param {Map<number, LuoguProfileNew>} [options.profiles]
  * @param {Map<number, number>} [options.count]
  */
 function TitleView({ users, profiles, count }) {
@@ -51,7 +51,7 @@ function TitleView({ users, profiles, count }) {
 /**
  * @param {Object} options
  * @param {Account} [options.account]
- * @param {LuoguProfile} [options.profile]
+ * @param {LuoguProfileNew} [options.profile]
  * @param {{problem: LuoguProblem, situation: Situation}[]} [options.problems]
  */
 function RowView({ account, profile, problems }) {
@@ -133,7 +133,7 @@ export default function TableView({ users, problems }) {
         const val = new Map();
         for (const account of users) {
             const uid = account.luogu;
-            /** @type {LuoguProfile} */
+            /** @type {LuoguProfileNew} */
             const profile = profiles.get(uid);
             if (profile && profile.privacy) val.set(uid, -1);
             else {
