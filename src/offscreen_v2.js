@@ -194,7 +194,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse(profiles[data]);
             break;
         case "query-progress":
-            sendResponse({ done: lgDone, total: lgUIDs.length });
+            sendResponse({ done: lasDone, total: lgUIDs.length });
             break;
         case "flush-cache":
             flushCache();
