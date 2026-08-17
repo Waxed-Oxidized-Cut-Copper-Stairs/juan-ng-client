@@ -93,7 +93,7 @@ async function crawlLuogu(uid, duration = null) {
         try {
             resp = await fetch(new URL("proxy", proxyURL), { headers: { "x-target-url": url } });
         } catch (err) {
-            send("notify", { title: "联考水表机 后端错误", msg: `通过代理服务器请求 ${url} 出现错误 ${err}` })
+            send("notify", { title: "联考水表机 后端错误", msg: `通过代理服务器请求 ${url} 出现错误 ${err}` });
             error(err, `通过代理服务器请求 ${url} 时出现此错误`);
             await luoguDB.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
             return;
