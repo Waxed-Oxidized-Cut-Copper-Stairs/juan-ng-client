@@ -184,6 +184,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (dst !== "offscreen") return;
     mainloop();
     switch (type) {
+        case "query-users":
+            sendResponse(users);
+            break;
         case "query-pid":
             sendResponse({
                 passed: Array.from(passedMap.get(data) ?? []),

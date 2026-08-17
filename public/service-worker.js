@@ -1,14 +1,3 @@
-const proxyURL = "http://127.0.0.1:6969";
-console.log(`服务端地址 ${proxyURL}`);
-
-const usersPromise = (async () => {
-    const resp = await fetch(`${proxyURL}/data`);
-    if (!resp.ok) {
-        throw new Error("无法获取数据，请检查服务端是否正常启动 :(");
-    }
-    return await resp.json();
-})();
-
 import { error } from "./lib/core.js";
 
 /** @type {Promise<void> | null} */
@@ -48,10 +37,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "sw") return;
     switch (type) {
-        case "query-users": {
-            usersPromise.then((users) => sendResponse(users), sendResponse);
-            return true;
-        }
+        case "query-users":
         case "query-pid":
         case "query-profile":
         case "query-progress": {
