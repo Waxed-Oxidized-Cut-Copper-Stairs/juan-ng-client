@@ -103,6 +103,32 @@ function addSubmitted(pid, uid) {
     if (passedMap.get(pid)?.has(uid)) return;
     submittedMap.add(pid, uid);
 }
+/**
+ * @param {number} uid
+ * @param {LuoguPracticeNew} practice
+ */
+function addLGPractice(uid, practice) {
+    const { passed, submitted, name, privacy } = practice;
+    for (const prob of submitted) addSubmitted(prob.pid, uid);
+    for (const prob of passed) addPassed(prob.pid, uid);
+    profiles[uid] = { name, privacy };
+}
+/**
+ * @param {string} handle
+ * @param {CodeForcesPractice} practice
+ */
+function addCFPractice(handle, practice) {
+    const { passed, submitted } = practice;
+    const uid = parseUid(handle);
+    for (const prob of submitted) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addSubmitted(parsePid(p), uid);
+    }
+    for (const prob of passed) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addPassed(parsePid(p), uid);
+    }
+}
 
 /**
  * @param {string} url
@@ -175,9 +201,7 @@ async function crawlLuogu(uid, duration = null) {
         name: user.name,
         privacy: privacy ?? false
     }
-    for (const prob of submitted) addSubmitted(prob.pid, uid);
-    for (const prob of passed) addPassed(prob.pid, uid);
-    profiles[uid] = { name: user.name, privacy: privacy ?? false };
+    addLGPractice(uid, ret);
     await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
@@ -222,16 +246,7 @@ async function updateCodeforcesProblemset() {
         /** @type {CodeForcesPractice} */
         const data = await codeforcesDB.get(codeforcesKey(handle));
         if (!data) continue;
-        const { passed, submitted } = data;
-        const uid = parseUid(handle);
-        for (const prob of submitted) {
-            const p = parseCodeforcesProblem(prob);
-            if (p) addSubmitted(parsePid(p), uid);
-        }
-        for (const prob of passed) {
-            const p = parseCodeforcesProblem(prob);
-            if (p) addPassed(parsePid(p), uid);
-        }
+        addCFPractice(handle, data);
     }
 }
 /**
@@ -269,15 +284,7 @@ async function crawlCodeforces(handle, duration = null) {
     }
     /** @type {CodeForcesPractice} */
     const ret = { passed, submitted, lastUpdate };
-    const uid = parseUid(handle);
-    for (const prob of submitted) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addSubmitted(parsePid(p), uid);
-    }
-    for (const prob of passed) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addPassed(parsePid(p), uid);
-    }
+    addCFPractice(handle, ret);
     await codeforcesDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
@@ -351,25 +358,13 @@ for (const uid of lgUIDs) {
     /** @type {LuoguPracticeNew} */
     const data = await luoguDB.get(luoguKey(uid));
     if (!data) continue;
-    const { passed, submitted, name, privacy } = data;
-    for (const prob of submitted) addSubmitted(prob.pid, uid);
-    for (const prob of passed) addPassed(prob.pid, uid);
-    profiles[uid] = { name, privacy };
+    addLGPractice(uid, data);
 }
 for (const handle of cfHandles) {
     /** @type {CodeForcesPractice} */
     const data = await codeforcesDB.get(codeforcesKey(handle));
     if (!data) continue;
-    const { passed, submitted } = data;
-    const uid = parseUid(handle);
-    for (const prob of submitted) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addSubmitted(parsePid(p), uid);
-    }
-    for (const prob of passed) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addPassed(parsePid(p), uid);
-    }
+    addCFPractice(handle, data);
 }
 
 chrome.runtime.onMessage.removeListener(tempListener);
