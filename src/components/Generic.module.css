@@ -31,7 +31,7 @@
 .combobox_body {
     background-color: var(--background);
     box-sizing: border-box;
-    border: 1px solid var(--blue);
+    border: 1px solid var(--fog);
     border-radius: 4px;
     padding: 0 8px;
     width: 240px;
@@ -43,8 +43,9 @@
 
 .combobox_popup {
     background-color: var(--background);
+    box-shadow: 0 1px 3px var(--shadow);
     box-sizing: border-box;
-    border: 1px solid var(--blue);
+    border: 1px solid var(--fog);
     border-radius: 4px;
     position: fixed;
     width: 240px;
@@ -71,7 +72,7 @@
 
 .floatdiv {
     background-color: var(--background);
-    border: 1px solid var(--blue);
+    border: 1px solid var(--fog);
     border-radius: 4px;
     box-shadow: 0 1px 3px var(--shadow);
     box-sizing: border-box;
