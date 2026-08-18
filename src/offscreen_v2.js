@@ -8,6 +8,7 @@ import { randint } from "../public/lib/random.js";
 const proxyURL = "http://127.0.0.1:6969";
 console.log(`服务端地址 ${proxyURL}`);
 
+const CODEFORCES_PROBLEMSET_GAP = 7 * 24 * 60 * 60 * 1000;
 const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
@@ -36,9 +37,16 @@ const users = await (async () => {
     return await resp.json();
 })();
 const lgUIDs = [];
+const cfHandles = [];
+/** @type {Map<string, number>} */
+const cfHandleMap = new Map();
 for (const user of users) {
     for (const account of user.accounts) {
         lgUIDs.push(account.luogu);
+        if (account.cf) {
+            cfHandles.push(account.cf);
+            cfHandleMap.set(account.cf, account.luogu);
+        }
     }
 }
 
@@ -96,6 +104,34 @@ function addSubmitted(pid, uid) {
     submittedMap.add(pid, uid);
 }
 
+/**
+ * @param {string} url
+ * @param {string | null} key
+ * @param {CacheDB | null} db
+ */
+async function fetchAPI(url, key = null, db = null) {
+    console.log("fetchAPI", url);
+    let resp;
+    try {
+        resp = await fetch(url);
+    } catch (err) {
+        send("notify", { title: "联考水表机 后端错误", msg: `请求 ${url} 出现错误 ${err}` });
+        error(err, `请求 ${url} 时出现此错误`);
+        if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
+        return;
+    }
+    if (!resp.ok) {
+        error(`请求 ${url} 返回 ${resp.status} ${resp.statusText}`);
+        if (400 <= resp.status && resp.status < 500) {
+            if (key && db) await db.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
+        } else if (500 <= resp.status && resp.status < 600) {
+            if (key && db) await db.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
+        }
+        return;
+    }
+    return await resp.json();
+}
+
 let luoguLock = Promise.resolve();
 /**
  * @param {number} uid
@@ -105,6 +141,7 @@ async function crawlLuogu(uid, duration = null) {
     const key = luoguKey(uid);
     const nxt = luoguLock.then(async () => {
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
+        console.log("fetchProxy", url);
         let resp;
         try {
             resp = await fetch(new URL("proxy", proxyURL), { headers: { "x-target-url": url } });
@@ -144,23 +181,128 @@ async function crawlLuogu(uid, duration = null) {
     await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
+/** @param {CodeForcesProblemBrief} prob */
+function parseCodeforcesProblem(prob) {
+    const a = codeforcesProblemset.get(prob.name);
+    if (!a) return null;
+    for (const p of a) {
+        if (Math.abs(p.contestId - prob.contestId) <= 1) return p;
+    }
+    return null;
+}
+/** @param {CodeForcesProblemBrief} prob */
+function parsePid(prob) { return `CF${prob.contestId}${prob.index}`; }
+/** @param {string} handle*/
+function parseUid(handle) { return cfHandleMap.get(handle); }
+
+let codeforcesLock = Promise.resolve();
+/** @type {Map<string, CodeForcesProblem[]>} */
+let codeforcesProblemset = new Map();
+let codeforcesProblemsetLastUpdate = 0;
+async function updateCodeforcesProblemset() {
+    if (Date.now() - codeforcesProblemsetLastUpdate < CODEFORCES_PROBLEMSET_GAP) return;
+    const nxt = codeforcesLock.then(async () => {
+        const url = "https://codeforces.com/api/problemset.problems";
+        return await fetchAPI(url);
+    });
+    codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
+    const data = await nxt;
+    if (!data) return;
+    /** @type {CodeForcesProblem[]} */
+    const problems = data.result.problems;
+    codeforcesProblemset.clear();
+    for (const prob of problems) {
+        if (!codeforcesProblemset.has(prob.name)) {
+            codeforcesProblemset.set(prob.name, []);
+        }
+        codeforcesProblemset.get(prob.name).push(prob);
+    }
+    codeforcesProblemsetLastUpdate = Date.now();
+    for (const handle of cfHandles) {
+        /** @type {CodeForcesPractice} */
+        const data = await codeforcesDB.get(codeforcesKey(handle));
+        if (!data) continue;
+        const { passed, submitted } = data;
+        const uid = parseUid(handle);
+        for (const prob of submitted) {
+            const p = parseCodeforcesProblem(prob);
+            if (p) addSubmitted(parsePid(p), uid);
+        }
+        for (const prob of passed) {
+            const p = parseCodeforcesProblem(prob);
+            if (p) addPassed(parsePid(p), uid);
+        }
+    }
+}
+/**
+ * @param {string} handle
+ * @param {number | null} duration
+ */
+async function crawlCodeforces(handle, duration = null) {
+    const key = `${handle}.status`;
+    const nxt = codeforcesLock.then(async () => {
+        const url = `https://codeforces.com/api/user.status?handle=${handle}&lang=en`;
+        return await fetchAPI(url, key, codeforcesDB);
+    });
+    // Codeforces API 限制 2s/req
+    codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
+    const data = await nxt;
+    if (!data) return;
+    /** @type {CodeForcesSubmission[]} */
+    const submissions = data.result;
+    const lastUpdate = submissions[0]?.creationTimeSeconds ?? 0;
+    /** @type {CodeForcesProblemBrief[]} */
+    const passed = [];
+    /** @type {CodeForcesProblemBrief[]} */
+    const submitted = [];
+    for (const submission of submissions) {
+        // 假定存在 contestId
+        const contestId = submission.problem.contestId;
+        const index = submission.problem.index;
+        const name = submission.problem.name;
+        const verdict = submission.verdict;
+        if (verdict === "OK") {
+            passed.push({ contestId, index, name });
+        } else {
+            submitted.push({ contestId, index, name });
+        }
+    }
+    /** @type {CodeForcesPractice} */
+    const ret = { passed, submitted, lastUpdate };
+    const uid = parseUid(handle);
+    for (const prob of submitted) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addSubmitted(parsePid(p), uid);
+    }
+    for (const prob of passed) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addPassed(parsePid(p), uid);
+    }
+    await codeforcesDB.set(key, ret, duration ? Date.now() + duration : null);
+}
+
 function send(type, data) {
     chrome.runtime.sendMessage({ "dst": "sw", type, data });
 }
 
 let lgDone = 0;
-let lasDone = 0;
+let cfDone = 0;
+let lasLgDone = 0;
+let lasCfDone = 0;
 function checkProgress() {
-    if (lgDone == lasDone) return;
-    lasDone = lgDone;
-    send("route-to-active-tabs", { type: "progress", data: { done: lgDone, total: lgUIDs.length } });
+    if (lgDone == lasLgDone && cfDone == lasCfDone) return;
+    lasLgDone = lgDone;
+    lasCfDone = cfDone;
+    send("route-to-active-tabs", { type: "progress", data: { done: lgDone + cfDone, total: lgUIDs.length + cfHandles.length } });
     send("route-to-active-tabs", { type: "configured" });
 }
 async function flushCache() {
     await luoguDB.expireAll();
+    await codeforcesDB.expireAll();
 }
 async function clearCache() {
     await luoguDB.clear();
+    await codeforcesDB.clear();
 }
 
 let mainloopActive = false;
@@ -170,6 +312,8 @@ async function mainloop() {
     try {
         const promises = [];
         lgDone = 0;
+        cfDone = 0;
+        promises.push(updateCodeforcesProblemset());
         for (const uid of lgUIDs) {
             if (await luoguDB.satisfied(luoguKey(uid))) {
                 ++lgDone;
@@ -177,6 +321,19 @@ async function mainloop() {
                 promises.push(crawlLuogu(uid)
                     .then(() => {
                         ++lgDone;
+                        checkProgress();
+                    }, err => {
+                        error(err);
+                    }));
+            }
+        }
+        for (const handle of cfHandles) {
+            if (await codeforcesDB.satisfied(codeforcesKey(handle))) {
+                ++cfDone;
+            } else {
+                promises.push(crawlCodeforces(handle)
+                    .then(() => {
+                        ++cfDone;
                         checkProgress();
                     }, err => {
                         error(err);
@@ -199,6 +356,21 @@ for (const uid of lgUIDs) {
     for (const prob of passed) addPassed(prob.pid, uid);
     profiles[uid] = { name, privacy };
 }
+for (const handle of cfHandles) {
+    /** @type {CodeForcesPractice} */
+    const data = await codeforcesDB.get(codeforcesKey(handle));
+    if (!data) continue;
+    const { passed, submitted } = data;
+    const uid = parseUid(handle);
+    for (const prob of submitted) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addSubmitted(parsePid(p), uid);
+    }
+    for (const prob of passed) {
+        const p = parseCodeforcesProblem(prob);
+        if (p) addPassed(parsePid(p), uid);
+    }
+}
 
 chrome.runtime.onMessage.removeListener(tempListener);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -219,7 +391,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse(profiles[data]);
             break;
         case "query-progress":
-            sendResponse({ done: lasDone, total: lgUIDs.length });
+            sendResponse({ done: lasLgDone + lasCfDone, total: lgUIDs.length + cfHandles.length });
             break;
         case "flush-cache":
             flushCache();
