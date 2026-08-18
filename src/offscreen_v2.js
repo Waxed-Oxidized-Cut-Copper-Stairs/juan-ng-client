@@ -326,11 +326,11 @@ async function mainloop() {
                 ++lgDone;
             } else {
                 promises.push(crawlLuogu(uid)
-                    .then(() => {
+                    .catch(err => {
+                        error(err);
+                    }).finally(() => {
                         ++lgDone;
                         checkProgress();
-                    }, err => {
-                        error(err);
                     }));
             }
         }
@@ -339,11 +339,11 @@ async function mainloop() {
                 ++cfDone;
             } else {
                 promises.push(crawlCodeforces(handle)
-                    .then(() => {
+                    .catch(err => {
+                        error(err);
+                    }).finally(() => {
                         ++cfDone;
                         checkProgress();
-                    }, err => {
-                        error(err);
                     }));
             }
         }
