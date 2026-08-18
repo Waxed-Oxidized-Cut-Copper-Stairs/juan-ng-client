@@ -291,21 +291,30 @@ export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...r
                 const width = popupRef.current.offsetWidth;
                 const height = popupRef.current.offsetHeight;
                 let ok = false;
-                for (const a of anchor) {
+                const test = (a) => {
                     const { top, left } = getCoord(a, rect, width, height);
                     const coord = clampCoord(a, left, top, width, height, 0, 0, window.innerWidth, window.innerHeight);
                     if (coord) {
                         setTop(coord.top);
                         setLeft(coord.left);
                         ok = true;
-                        break;
                     }
+                };
+                for (const a of anchor) {
+                    test(a);
+                    if (ok) break;
                 }
                 if (!ok) {
-                    const a = anchor[0] ?? "left";
-                    const { top, left } = getCoord(a, rect, width, height);
-                    setTop(Math.max(Math.min(top, window.innerHeight - height), 0));
-                    setLeft(Math.max(Math.min(left, window.innerWidth - width), 0));
+                    for (const a of ["left", "right", "top", "bottom"]) {
+                        test(a);
+                        if (ok) break;
+                    }
+                    if (!ok) {
+                        const a = anchor[0] ?? "left";
+                        const { top, left } = getCoord(a, rect, width, height);
+                        setTop(Math.max(Math.min(top, window.innerHeight - height), 0));
+                        setLeft(Math.max(Math.min(left, window.innerWidth - width), 0));
+                    }
                 }
             });
         }
