@@ -19,7 +19,7 @@ export default function Popup() {
                     <br />
                     修改后需要重新加载扩展才生效。
                     <br />
-                    <Button onClick={() => { flushCache(); }}>清除缓存</Button>
+                    <Button onClick={() => { flushCache(); }}>刷新缓存</Button>
                 </div>
                 <div>
                     本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。
