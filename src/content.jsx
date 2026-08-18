@@ -260,10 +260,11 @@ function TrainingEntry({ element, setTrainingVisible }) {
         </ShadowRoot >
     )
 }
-function Training({ visible }) {
+function Training() {
     const [aim, setAim] = useState([]);
     const [items, setItems] = useState([]);
     const [selected, setSelected] = useState(null);
+    const [visible, setVisible] = useState(false);
     const [{ problems }] = useState(() => {
         const node = document.getElementById("lentille-context");
         const content = JSON.parse(node.textContent);
@@ -300,6 +301,9 @@ function Training({ visible }) {
         return () => {
             node.style.display = old;
         }
+    }, []);
+    useLayoutEffect(() => {
+        setVisible(true);
     }, []);
     return (
         <ShadowRoot>
@@ -406,7 +410,7 @@ function App() {
                 trainingHeaderElement
             )}
             {trainingVisible && trainingElement && createPortal(
-                <Training visible={trainingVisible} />,
+                <Training />,
                 trainingElement
             )}
         </>
