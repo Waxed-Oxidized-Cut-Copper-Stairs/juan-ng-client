@@ -13,7 +13,7 @@ function HeaderView({ problems, ref }) {
             {problems.map((problem) => {
                 return (
                     <FloatDivContainer holdFloat={false}>
-                        <FloatDiv anchor="top">
+                        <FloatDiv anchor={["top"]}>
                             <div>{problem.pid} {problem.name}</div>
                         </FloatDiv>
                         <FloatDivBinding className={styles.header_cell}>

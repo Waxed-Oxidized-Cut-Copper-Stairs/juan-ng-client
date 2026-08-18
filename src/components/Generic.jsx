@@ -233,11 +233,53 @@ export default function FadeAnimation({ children, visible, jumpin = false }) {
 }
 
 /**
+ * @typedef {"top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | "left-top" | "left-bottom" | "right-top" | "right-bottom"} Anchor
+ * @param {Anchor} anchor
+ * @param {DOMRect} rect
+ * @param {number} width
+ * @param {number} height
+ * @param {number} gap
+ */
+function getCoord(anchor, rect, width, height, gap = 5) {
+    if (!anchor.includes("-")) anchor += "-center";
+    let top = rect.top, left = rect.left;
+    if (anchor.startsWith("top-")) top = rect.top - height - gap;
+    else if (anchor.startsWith("bottom-")) top = rect.bottom + gap;
+    else if (anchor.startsWith("left-")) left = rect.left - width - gap;
+    else if (anchor.startsWith("right-")) left = rect.right + gap;
+    if (anchor.endsWith("-center")) {
+        if (anchor == "top-center" || anchor == "bottom-center") left = rect.left + (rect.width - width) / 2;
+        else top = rect.top + (rect.height - height) / 2;
+    } else if (anchor.endsWith("-left")) left = rect.left;
+    else if (anchor.endsWith("-right")) left = rect.right - width;
+    else if (anchor.endsWith("-top")) top = rect.top;
+    else if (anchor.endsWith("-bottom")) top = rect.bottom - height;
+    return { top, left };
+}
+/**
+ * @param {Anchor} anchor
+ * @param {number} left
+ * @param {number} top
+ * @param {number} width
+ * @param {number} height
+ * @param {number} maxX
+ * @param {number} maxY
+ */
+function clampCoord(anchor, left, top, width, height, minX, minY, maxX, maxY) {
+    if (left < minX && anchor.startsWith("left")) return null;
+    if (left + width > maxX && anchor.startsWith("right")) return null;
+    left = Math.max(Math.min(left, maxX - width), minX);
+    if (top < minY && anchor.startsWith("top")) return null;
+    if (top + height > maxY && anchor.startsWith("bottom")) return null;
+    top = Math.max(Math.min(top, maxY - height), minY);
+    return { left, top };
+}
+/**
  * 注意：使用此组件时不应该手动传入 visible 和 targetRef 参数
  * @param {Object} options
- * @param {"left" | "top"} [options.anchor]
+ * @param {Anchor[]} [options.anchor]
  */
-export function FloatDiv({ children, anchor = "left", visible, targetRef, ...rest }) {
+export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...rest }) {
     const popupRef = useRef(null);
     const [top, setTop] = useState(0);
     const [left, setLeft] = useState(0);
@@ -246,12 +288,24 @@ export function FloatDiv({ children, anchor = "left", visible, targetRef, ...res
             requestAnimationFrame(() => {
                 /** @type {DOMRect} */
                 const rect = targetRef.current.getBoundingClientRect();
-                if (anchor === "top") {
-                    setTop(rect.top - popupRef.current.offsetHeight - 5);
-                    setLeft((rect.left + rect.right - popupRef.current.offsetWidth) / 2);
-                } else {
-                    setTop((rect.top + rect.bottom - popupRef.current.offsetHeight) / 2);
-                    setLeft(rect.left - popupRef.current.offsetWidth - 5);
+                const width = popupRef.current.offsetWidth;
+                const height = popupRef.current.offsetHeight;
+                let ok = false;
+                for (const a of anchor) {
+                    const { top, left } = getCoord(a, rect, width, height);
+                    const coord = clampCoord(a, left, top, width, height, 0, 0, window.innerWidth, window.innerHeight);
+                    if (coord) {
+                        setTop(coord.top);
+                        setLeft(coord.left);
+                        ok = true;
+                        break;
+                    }
+                }
+                if (!ok) {
+                    const a = anchor[0] ?? "left";
+                    const { top, left } = getCoord(a, rect, width, height);
+                    setTop(Math.max(Math.min(top, window.innerHeight - height), 0));
+                    setLeft(Math.max(Math.min(left, window.innerWidth - width), 0));
                 }
             });
         }
