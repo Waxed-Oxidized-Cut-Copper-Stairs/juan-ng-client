@@ -81,6 +81,13 @@ export function flushCache() {
     cachedProfiles.clear();
     errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-cache" }));
 }
+/** @param {Account[]} accounts */
+export function flushSpecificCache(accounts) {
+    for (const account of accounts) {
+        cachedProfiles.delete(account.luogu);
+    }
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-specific-cache", data: accounts }));
+}
 export function clearCache() {
     cachedProfiles.clear();
     errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "clear-cache" }));

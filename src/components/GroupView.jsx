@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, Username } from "./Generic";
 import styles from "./GroupView.module.css";
 
-import { acquireProblem, subscribe } from "../protocol_v2";
+import { acquireProblem, flushSpecificCache, subscribe } from "../protocol_v2";
 import StatusBar, { OnlineStatusBar } from "./StatusBar";
 
 export function QuickView({ ac, wa, tot, visible }) {
@@ -20,12 +20,17 @@ export function QuickView({ ac, wa, tot, visible }) {
     )
 }
 
-export function QuickOperation() {
+/**
+ * @param {Object} options
+ * @param {Account[]} [options.accounts]
+ */
+export function QuickOperation({ accounts, children }) {
     return (
         <div className={styles.quickoperation}>
-            <Button onClick={() => console.log("A")}>点</Button>
-            <Button onClick={() => console.log("A")}>点</Button>
-            <Button onClick={() => console.log("A")}>点</Button>
+            <div>
+                {children}
+            </div>
+            <Button onClick={() => flushSpecificCache(accounts)}>刷新</Button>
         </div>
     )
 }
@@ -59,8 +64,8 @@ export function SingleGroupView({ group, pid, passed, submitted, verbose = false
     const { cntAC, cntWA } = useMemo(() => {
         let cntAC = 0, cntWA = 0;
         for (const account of group.accounts) {
-            if (submitted.has(account.luogu)) ++cntWA;
             if (passed.has(account.luogu)) ++cntAC;
+            else if (submitted.has(account.luogu)) ++cntWA;
         }
         return { cntAC, cntWA };
     }, [passed, submitted]);
@@ -76,7 +81,13 @@ export function SingleGroupView({ group, pid, passed, submitted, verbose = false
                     {verbose ? (
                         <FloatDivContainer>
                             <FloatDiv>
-                                <QuickOperation />
+                                <QuickOperation accounts={group.accounts}>
+                                    通过人数
+                                    <span className={styles.ac} style={{ fontWeight: "bold" }}> {cntAC}</span>
+                                    <br />
+                                    未通过人数
+                                    <span className={styles.wa} style={{ fontWeight: "bold" }}> {cntWA}</span>
+                                </QuickOperation>
                             </FloatDiv>
                             <FloatDivBinding>
                                 <span>{group.name}</span>

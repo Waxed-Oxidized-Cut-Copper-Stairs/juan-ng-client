@@ -327,6 +327,13 @@ async function flushCache() {
     await luoguDB.expireAll();
     await codeforcesDB.expireAll();
 }
+/** @param {Account[]} accounts */
+async function flushSpecificCache(accounts) {
+    for (const account of accounts) {
+        await luoguDB.expire(luoguKey(account.luogu));
+        if (account.cf) await codeforcesDB.expire(codeforcesKey(account.cf));
+    }
+}
 async function clearCache() {
     await luoguDB.clear();
     await codeforcesDB.clear();
@@ -404,6 +411,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "flush-cache":
             flushCache();
+            break;
+        case "flush-specific-cache":
+            flushSpecificCache(data);
             break;
         case "clear-cache":
             clearCache();

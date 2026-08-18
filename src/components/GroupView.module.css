@@ -4,8 +4,7 @@
 }
 
 .quickoperation {
-    display: flex;
-    gap: 3px;
+    font-size: 14px;
 }
 
 .singleview {
