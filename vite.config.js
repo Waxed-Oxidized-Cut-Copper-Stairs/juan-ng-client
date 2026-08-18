@@ -21,6 +21,7 @@ function generateManifestPlugin() {
             const manifest = {
                 manifest_version: 3,
                 name: "联考水表机",
+                key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2pDuO9/P1XIsfylJ8TgMNw7oqpqLIXrCbQSFOfDhktTPAO2azAhEnElWbO+HQCStAkPDgPLxd9a2u51fDUYyqyySyD8RlcevnmwjoOxXFWJokEsIz7IUtOHfOfJdU3MLp2NQtM4dSnKfob+C9HRuKrkpDN4y2FM6u6GhpMQeBEg2ntzSLeet3al2k/mIddVmnQf4GPwNOlUfYFdlTiPRraR5jxTcSb2EcKBkwM9O0xTAmXO3WkvAaHUTATgjr50tBZzOAeT53DnlrYavrTD+msUFOrdIk7LcjSmrWch+I6fhZ5HufQinV3BFP5Xq7QeESy5E3LFko6DKwPGX0dGd4QIDAQAB",
                 version: juanVersion,
                 version_name: `${juanVersion} (${commitHash})`,
                 description: "查查表",
