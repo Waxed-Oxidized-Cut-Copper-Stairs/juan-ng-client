@@ -7,6 +7,29 @@
     font-size: 14px;
 }
 
+.detailview {
+    display: flex;
+    gap: 5px;
+}
+
+.detailviewL {
+    min-width: 16px;
+    text-align: right;
+}
+
+.detailviewR {
+    flex: 1;
+}
+
+.percentview {
+    padding: 0 3px;
+}
+
+.percentviewem {
+    font-size: 14px;
+    font-weight: bold;
+}
+
 .singleview {
     font-weight: bold;
 }
@@ -41,6 +64,12 @@
 
 .wa {
     color: var(--red);
+}
+
+.emphasize {
+    font-size: 12px;
+    font-weight: bold;
+    font-variant: small-caps;
 }
 
 .anchor {

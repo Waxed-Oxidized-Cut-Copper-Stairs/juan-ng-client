@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, Username } from "./Generic";
+import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, percentToColor, percentToString, Username } from "./Generic";
 import styles from "./GroupView.module.css";
 
 import { acquireProblem, flushSpecificCache, subscribe } from "../protocol_v2";
@@ -16,21 +16,6 @@ export function QuickView({ ac, wa, tot, visible }) {
                     {/* <span style={{ color: percentToColor(Math.cbrt(ac / tot)) }}>{percentToString(ac, tot)}</span> */}
                 </div>
             </AnimatedView>
-        </div>
-    )
-}
-
-/**
- * @param {Object} options
- * @param {Account[]} [options.accounts]
- */
-export function QuickOperation({ accounts, children }) {
-    return (
-        <div className={styles.quickoperation}>
-            <div>
-                {children}
-            </div>
-            <Button onClick={() => flushSpecificCache(accounts)}>刷新</Button>
         </div>
     )
 }
@@ -70,46 +55,74 @@ export function SingleGroupView({ group, pid, passed, submitted, verbose = false
         return { cntAC, cntWA };
     }, [passed, submitted]);
     if (!(cntAC > 0 || cntWA > 0)) return null;
-    return (
-        <div
-            className={styles.singlegroup}
-            onMouseEnter={() => setVisible(true)}
-            onMouseLeave={() => setVisible(false)}
-        >
-            <div>
-                <div className={styles.groupname}>
-                    {verbose ? (
-                        <FloatDivContainer>
-                            <FloatDiv>
-                                <QuickOperation accounts={group.accounts}>
-                                    通过人数
-                                    <span className={styles.ac} style={{ fontWeight: "bold" }}> {cntAC}</span>
-                                    <br />
-                                    未通过人数
-                                    <span className={styles.wa} style={{ fontWeight: "bold" }}> {cntWA}</span>
-                                </QuickOperation>
-                            </FloatDiv>
-                            <FloatDivBinding>
-                                <span>{group.name}</span>
-                            </FloatDivBinding>
-                        </FloatDivContainer>
-                    ) : (<span>{group.name}</span>)}
-                </div>
-                <div className={styles.rightview}>
-                    <QuickView ac={cntAC} wa={cntWA} tot={group.accounts.length} visible={visible} />
-                </div>
-            </div>
-            <div>
-                {group.accounts.map((account, idx, arr) => {
-                    const state = passed.has(account.luogu) ? 1 : (submitted.has(account.luogu) ? 2 : 0);
-                    if (!state) return null;
-                    return (
-                        <SingleView key={idx} account={account} pid={pid} state={state} />
-                    )
-                })}
-            </div>
+    const div = (
+        <div>
+            {group.accounts.map((account, idx, arr) => {
+                const state = passed.has(account.luogu) ? 1 : (submitted.has(account.luogu) ? 2 : 0);
+                if (!state) return null;
+                return (
+                    <SingleView key={idx} account={account} pid={pid} state={state} />
+                )
+            })}
         </div>
-    )
+    );
+    if (verbose) {
+        return (
+            <div
+                className={styles.singlegroup}
+                onMouseEnter={() => setVisible(true)}
+                onMouseLeave={() => setVisible(false)}
+            >
+                <FloatDivContainer>
+                    <FloatDiv>
+                        <div className={styles.quickoperation}>
+                            <div className={styles.detailview}>
+                                <div className={styles.detailviewL}>
+                                    <strong className={styles.ac}>{cntAC}</strong>
+                                    <br />
+                                    <strong className={styles.wa}>{cntWA}</strong>
+                                    <br />
+                                    <strong>{group.accounts.length}</strong>
+                                </div>
+                                <div className={styles.detailviewR}>
+                                    <span className={styles.emphasize}> Passed</span>
+                                    <br />
+                                    <span className={styles.emphasize}> Submitted</span>
+                                    <br />
+                                    <span className={styles.emphasize}> In Total</span>
+                                </div>
+                            </div>
+                            <div className={styles.percentview}>
+                                通过率
+                                <span className={styles.percentviewem} style={{ color: percentToColor(Math.cbrt(cntAC / group.accounts.length)) }}> {percentToString(cntAC, group.accounts.length)}</span>
+                            </div>
+                            <Button onClick={() => flushSpecificCache(group.accounts)}>刷新</Button>
+                        </div>
+                    </FloatDiv>
+                    <FloatDivBinding>
+                        <div className={styles.groupname}>{group.name}</div>
+                        {div}
+                    </FloatDivBinding>
+                </FloatDivContainer>
+            </div>
+        )
+    } else {
+        return (
+            <div
+                className={styles.singlegroup}
+                onMouseEnter={() => setVisible(true)}
+                onMouseLeave={() => setVisible(false)}
+            >
+                <div>
+                    <div className={styles.groupname}>{group.name}</div>
+                    <div className={styles.rightview}>
+                        <QuickView ac={cntAC} wa={cntWA} tot={group.accounts.length} visible={visible} />
+                    </div>
+                </div>
+                {div}
+            </div>
+        )
+    }
 }
 
 /**
