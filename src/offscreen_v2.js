@@ -12,6 +12,7 @@ const CODEFORCES_PROBLEMSET_GAP = 7 * 24 * 60 * 60 * 1000;
 const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
+const INTERNAL_ERROR_GAP = 12 * 60 * 60 * 1000;
 
 const tempListener = (message, sender, sendResponse) => {
     const { dst, type, data } = message;
@@ -152,6 +153,8 @@ async function fetchAPI(url, key = null, db = null) {
             if (key && db) await db.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
         } else if (500 <= resp.status && resp.status < 600) {
             if (key && db) await db.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
+        } else {
+            if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
         }
         return;
     }
@@ -183,6 +186,8 @@ async function crawlLuogu(uid, duration = null) {
                 await luoguDB.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
             } else if (500 <= resp.status && resp.status < 600) {
                 await luoguDB.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
+            } else {
+                await luoguDB.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
             }
             return;
         }
@@ -191,18 +196,23 @@ async function crawlLuogu(uid, duration = null) {
     luoguLock = nxt.then(() => sleep(randint(5000, 8000))).catch(() => { });
     const data = await nxt;
     if (!data) return;
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data, "text/html");
-    const content = JSON.parse(doc.getElementById("lentille-context").textContent);
-    const { passed, submitted, user, privacy } = content.data;
-    /** @type {LuoguPracticeNew} */
-    const ret = {
-        passed, submitted,
-        name: user.name,
-        privacy: privacy ?? false
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data, "text/html");
+        const content = JSON.parse(doc.getElementById("lentille-context").textContent);
+        const { passed, submitted, user, privacy } = content.data;
+        /** @type {LuoguPracticeNew} */
+        const ret = {
+            passed, submitted,
+            name: user.name,
+            privacy: privacy ?? false
+        }
+        addLGPractice(uid, ret);
+        await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
+    } catch (err) {
+        error(err);
+        await luoguDB.setExpiration(key, Date.now() + INTERNAL_ERROR_GAP);
     }
-    addLGPractice(uid, ret);
-    await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
 /** @param {CodeForcesProblemBrief} prob */
@@ -232,21 +242,26 @@ async function updateCodeforcesProblemset() {
     codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
     const data = await nxt;
     if (!data) return;
-    /** @type {CodeForcesProblem[]} */
-    const problems = data.result.problems;
-    codeforcesProblemset.clear();
-    for (const prob of problems) {
-        if (!codeforcesProblemset.has(prob.name)) {
-            codeforcesProblemset.set(prob.name, []);
+    try {
+        /** @type {CodeForcesProblem[]} */
+        const problems = data.result.problems;
+        codeforcesProblemset.clear();
+        for (const prob of problems) {
+            if (!codeforcesProblemset.has(prob.name)) {
+                codeforcesProblemset.set(prob.name, []);
+            }
+            codeforcesProblemset.get(prob.name).push(prob);
         }
-        codeforcesProblemset.get(prob.name).push(prob);
-    }
-    codeforcesProblemsetLastUpdate = Date.now();
-    for (const handle of cfHandles) {
-        /** @type {CodeForcesPractice} */
-        const data = await codeforcesDB.get(codeforcesKey(handle));
-        if (!data) continue;
-        addCFPractice(handle, data);
+        codeforcesProblemsetLastUpdate = Date.now();
+        for (const handle of cfHandles) {
+            /** @type {CodeForcesPractice} */
+            const data = await codeforcesDB.get(codeforcesKey(handle));
+            if (!data) continue;
+            addCFPractice(handle, data);
+        }
+    } catch (err) {
+        error(err);
+        codeforcesProblemsetLastUpdate = Date.now() - CODEFORCES_PROBLEMSET_GAP + INTERNAL_ERROR_GAP;
     }
 }
 /**
@@ -263,29 +278,34 @@ async function crawlCodeforces(handle, duration = null) {
     codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
     const data = await nxt;
     if (!data) return;
-    /** @type {CodeForcesSubmission[]} */
-    const submissions = data.result;
-    const lastUpdate = submissions[0]?.creationTimeSeconds ?? 0;
-    /** @type {CodeForcesProblemBrief[]} */
-    const passed = [];
-    /** @type {CodeForcesProblemBrief[]} */
-    const submitted = [];
-    for (const submission of submissions) {
-        // 假定存在 contestId
-        const contestId = submission.problem.contestId;
-        const index = submission.problem.index;
-        const name = submission.problem.name;
-        const verdict = submission.verdict;
-        if (verdict === "OK") {
-            passed.push({ contestId, index, name });
-        } else {
-            submitted.push({ contestId, index, name });
+    try {
+        /** @type {CodeForcesSubmission[]} */
+        const submissions = data.result;
+        const lastUpdate = submissions[0]?.creationTimeSeconds ?? 0;
+        /** @type {CodeForcesProblemBrief[]} */
+        const passed = [];
+        /** @type {CodeForcesProblemBrief[]} */
+        const submitted = [];
+        for (const submission of submissions) {
+            // 假定存在 contestId
+            const contestId = submission.problem.contestId;
+            const index = submission.problem.index;
+            const name = submission.problem.name;
+            const verdict = submission.verdict;
+            if (verdict === "OK") {
+                passed.push({ contestId, index, name });
+            } else {
+                submitted.push({ contestId, index, name });
+            }
         }
+        /** @type {CodeForcesPractice} */
+        const ret = { passed, submitted, lastUpdate };
+        addCFPractice(handle, ret);
+        await codeforcesDB.set(key, ret, duration ? Date.now() + duration : null);
+    } catch (err) {
+        error(err);
+        await codeforcesDB.setExpiration(key, Date.now() + INTERNAL_ERROR_GAP);
     }
-    /** @type {CodeForcesPractice} */
-    const ret = { passed, submitted, lastUpdate };
-    addCFPractice(handle, ret);
-    await codeforcesDB.set(key, ret, duration ? Date.now() + duration : null);
 }
 
 function send(type, data) {
