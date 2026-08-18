@@ -360,12 +360,6 @@ for (const uid of lgUIDs) {
     if (!data) continue;
     addLGPractice(uid, data);
 }
-for (const handle of cfHandles) {
-    /** @type {CodeForcesPractice} */
-    const data = await codeforcesDB.get(codeforcesKey(handle));
-    if (!data) continue;
-    addCFPractice(handle, data);
-}
 
 chrome.runtime.onMessage.removeListener(tempListener);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
