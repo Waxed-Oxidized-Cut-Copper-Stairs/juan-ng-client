@@ -8,7 +8,7 @@
 
 ## 环境要求
 
-需要与服务端 [juan-ng-server](https://github.com/Wang-Yile/juan-ng-server) 配套使用。
+需要与服务端 [juan-ng-server](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server) 配套使用。
 
 Firefox 无法使用此插件，因为它不支持 Service Worker。
 
