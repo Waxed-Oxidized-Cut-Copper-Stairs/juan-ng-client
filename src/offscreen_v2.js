@@ -214,7 +214,7 @@ async function crawlLuogu(uid, duration = null) {
         }
         return await resp.text();
     });
-    luoguLock = nxt.then(() => sleep(randint(60 * 1000, 5 * 60 * 1000))).catch(() => { });
+    luoguLock = nxt.finally(() => sleep(randint(60 * 1000, 5 * 60 * 1000))).catch(() => { });
     const data = await nxt;
     if (!data) return;
     try {
@@ -260,7 +260,7 @@ async function updateCodeforcesProblemset() {
         const url = "https://codeforces.com/api/problemset.problems";
         return await fetchAPI(url);
     });
-    codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
+    codeforcesLock = nxt.finally(() => sleep(2026)).catch(() => { });
     let data;
     try {
         data = await nxt;
@@ -305,7 +305,7 @@ async function crawlCodeforces(handle, duration = null) {
         return await fetchAPI(url, key, codeforcesDB);
     });
     // Codeforces API 限制 2s/req
-    codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
+    codeforcesLock = nxt.finally(() => sleep(2026)).catch(() => { });
     const data = await nxt;
     if (!data) return;
     try {
