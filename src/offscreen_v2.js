@@ -242,8 +242,17 @@ async function updateCodeforcesProblemset() {
         return await fetchAPI(url);
     });
     codeforcesLock = nxt.then(() => sleep(2026)).catch(() => { });
-    const data = await nxt;
-    if (!data) return;
+    let data;
+    try {
+        data = await nxt;
+    } catch (err) {
+        codeforcesProblemsetLastUpdate = Date.now() - CODEFORCES_PROBLEMSET_GAP + INTERNAL_ERROR_GAP;
+        throw err;
+    }
+    if (!data) {
+        codeforcesProblemsetLastUpdate = Date.now() - CODEFORCES_PROBLEMSET_GAP + INTERNAL_ERROR_GAP;
+        return;
+    }
     try {
         /** @type {CodeForcesProblem[]} */
         const problems = data.result.problems;
