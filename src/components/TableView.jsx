@@ -53,10 +53,9 @@ function TitleView({ users, profiles, count }) {
 /**
  * @param {Object} options
  * @param {Account} [options.account]
- * @param {LuoguProfileNew} [options.profile]
  * @param {{problem: LuoguProblem, situation: { passed: Set<number>, submitted: Set<number> }}[]} [options.problems]
  */
-function RowView({ account, profile, problems }) {
+function RowView({ account, problems }) {
     return (
         <div>
             {problems.map(({ problem, situation }) => {
@@ -176,7 +175,7 @@ export default function TableView({ users, problems }) {
                     <HeaderView ref={headerRef} problems={problems} />
                     {order.map((account) => {
                         return (
-                            <RowView key={account.luogu} account={account} profile={profiles.get(account.luogu)} problems={prob} />
+                            <RowView key={account.luogu} account={account} problems={prob} />
                         )
                     })}
                 </div>
