@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { acquireProgress, ping, subscribe } from "../protocol_v2";
 import FadeAnimation, { percentToColor, percentToString } from "./Generic";

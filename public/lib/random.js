@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 class mt19937 {
     static N = 624;
     constructor(seed = Date.now()) {

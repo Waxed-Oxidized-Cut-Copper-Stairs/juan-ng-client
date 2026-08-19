@@ -1,3 +1,5 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+
 # 联考水表机客户端
 
 > 在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。

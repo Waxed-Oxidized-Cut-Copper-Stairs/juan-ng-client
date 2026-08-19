@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /** @param {number} t */
 async function sleep(t) { await new Promise(r => setTimeout(r, t)); }
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { error, warning } from "./lib/core.js";
 
 const offscreenReady = (async () => {

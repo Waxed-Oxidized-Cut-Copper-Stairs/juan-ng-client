@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /** @param {Date | null} date */
 function fmtDate(date = null) {
     if (date === null) date = new Date();

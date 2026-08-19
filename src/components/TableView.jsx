@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer } from "./Generic";
 import styles from "./TableView.module.css";

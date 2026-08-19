@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Generic.module.css";

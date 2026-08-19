@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 console.log("离屏页面 >w<");
 
 import { sleep } from "../public/lib/asyncio.js";
