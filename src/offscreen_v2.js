@@ -17,9 +17,11 @@ const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
 const INTERNAL_ERROR_GAP = 12 * 60 * 60 * 1000;
 
 const DURATION_LG_DEFAULT = null;
-const DURATION_LG_HIGH = 24 * 60 * 1000;
-const DURATION_CF_DEFAULT = 24 * 60 * 1000;
-const DURATION_CF_HIGH = 6 * 60 * 1000;
+const DURATION_LG_HIGH = 3 * 24 * 60 * 1000;
+const DURATION_LG_LUNATIC = 24 * 60 * 1000;
+const DURATION_CF_DEFAULT = 3 * 24 * 60 * 1000;
+const DURATION_CF_HIGH = 24 * 60 * 1000;
+const DURATION_CF_LUNATIC = 6 * 60 * 1000;
 
 const tempListener = (message, sender, sendResponse) => {
     const { dst, type, data } = message;
@@ -74,10 +76,16 @@ await Promise.allSettled([luoguDB.init, atcoderDB.init, codeforcesDB.init]);
 function luoguKey(uid) { return `${uid}`; }
 function codeforcesKey(handle) { return `${handle}.status`; }
 function luoguDuration(uid) {
-    return lgPriMap.get(uid) == 1 ? DURATION_LG_HIGH : DURATION_LG_DEFAULT;
+    const p = lgPriMap.get(uid);
+    if (p >= 2) return DURATION_LG_LUNATIC;
+    else if (p == 2) return DURATION_LG_HIGH;
+    return DURATION_LG_DEFAULT;
 }
 function codeforcesDuration(handle) {
-    return cfPriMap.get(handle) == 1 ? DURATION_CF_HIGH : DURATION_CF_DEFAULT;
+    const p = cfPriMap.get(handle);
+    if (p >= 2) return DURATION_CF_LUNATIC;
+    else if (p == 2) return DURATION_CF_HIGH;
+    return DURATION_CF_DEFAULT;
 }
 
 /** @type {Object<number, LuoguProfileNew>} */
