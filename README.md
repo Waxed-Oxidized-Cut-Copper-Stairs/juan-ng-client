@@ -2,7 +2,11 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机客户端
 
-> 在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
+*Last Update：2026-08-19*
+
+> 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
+>
+> 例外：本 README 文件在 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 协议下发布。
 
 **本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。**
 
