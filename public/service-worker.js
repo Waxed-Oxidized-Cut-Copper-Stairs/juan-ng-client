@@ -68,8 +68,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             return true;
         }
         case "route-to-active-tabs": {
+            // Edge 支持分屏，但 Chromium 没有提供对应的查询接口，导致分屏状态下消息同步有问题
+            // Firefox 的 Web Extension API 也无法正确处理消息同步
             chrome.tabs.query({
-                active: true, highlighted: true,
+                active: true,
                 url: [
                     "https://www.luogu.com.cn/*",
                     "https://www.luogu.me/*"
