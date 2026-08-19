@@ -16,6 +16,11 @@ const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
 const INTERNAL_ERROR_GAP = 12 * 60 * 60 * 1000;
 
+const DURATION_LG_DEFAULT = null;
+const DURATION_LG_HIGH = 24 * 60 * 1000;
+const DURATION_CF_DEFAULT = 24 * 60 * 1000;
+const DURATION_CF_HIGH = 6 * 60 * 1000;
+
 const tempListener = (message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "offscreen") return;
@@ -43,12 +48,20 @@ const lgUIDs = [];
 const cfHandles = [];
 /** @type {Map<string, number>} */
 const cfHandleMap = new Map();
+/** @type {Map<number, number>} */
+const lgPriMap = new Map();
+/** @type {Map<number, number>} */
+const cfPriMap = new Map();
 for (const user of users) {
-    for (const account of user.accounts) {
-        lgUIDs.push(account.luogu);
-        if (account.cf) {
-            cfHandles.push(account.cf);
-            cfHandleMap.set(account.cf, account.luogu);
+    for (const { luogu: uid, cf: handle, pri } of user.accounts) {
+        lgUIDs.push(uid);
+        if (handle) {
+            cfHandles.push(handle);
+            cfHandleMap.set(handle, uid);
+        }
+        if (pri) {
+            lgPriMap.set(uid, pri);
+            if (handle) cfPriMap.set(handle, pri);
         }
     }
 }
@@ -60,6 +73,12 @@ await Promise.allSettled([luoguDB.init, atcoderDB.init, codeforcesDB.init]);
 
 function luoguKey(uid) { return `${uid}`; }
 function codeforcesKey(handle) { return `${handle}.status`; }
+function luoguDuration(uid) {
+    return lgPriMap.get(uid) == 1 ? DURATION_LG_HIGH : DURATION_LG_DEFAULT;
+}
+function codeforcesDuration(handle) {
+    return cfPriMap.get(handle) == 1 ? DURATION_CF_HIGH : DURATION_CF_DEFAULT;
+}
 
 /** @type {Object<number, LuoguProfileNew>} */
 let profiles = {};
@@ -363,7 +382,7 @@ async function mainloop() {
             if (await luoguDB.satisfied(luoguKey(uid))) {
                 ++lgDone;
             } else {
-                promises.push(crawlLuogu(uid)
+                promises.push(crawlLuogu(uid, luoguDuration(uid))
                     .catch(err => {
                         error(err);
                     }).finally(() => {
@@ -376,7 +395,7 @@ async function mainloop() {
             if (await codeforcesDB.satisfied(codeforcesKey(handle))) {
                 ++cfDone;
             } else {
-                promises.push(crawlCodeforces(handle)
+                promises.push(crawlCodeforces(handle, codeforcesDuration(handle))
                     .catch(err => {
                         error(err);
                     }).finally(() => {
