@@ -195,7 +195,7 @@ async function crawlLuogu(uid, duration = null) {
         }
         return await resp.text();
     });
-    luoguLock = nxt.then(() => sleep(randint(5000, 8000))).catch(() => { });
+    luoguLock = nxt.then(() => sleep(randint(60 * 1000, 5 * 60 * 1000))).catch(() => { });
     const data = await nxt;
     if (!data) return;
     try {
