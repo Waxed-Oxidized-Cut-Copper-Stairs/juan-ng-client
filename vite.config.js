@@ -55,6 +55,7 @@ function generateManifestPlugin() {
                     {
                         matches: [
                             "https://www.luogu.com.cn/*",
+                            "https://www.luogu.com/*",
                             "https://www.luogu.me/*"
                         ],
                         js: ["content-wrapper.js"],
@@ -65,10 +66,8 @@ function generateManifestPlugin() {
                     {
                         "resources": [
                             "lib/*",
-                            "components/*",
                             "assets/*",
-                            "content.js",
-                            "protocol.js"
+                            "content.js"
                         ],
                         "matches": [
                             "<all_urls>"
