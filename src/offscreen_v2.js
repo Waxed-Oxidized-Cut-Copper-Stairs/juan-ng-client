@@ -190,7 +190,7 @@ async function fetchAPI(url, key = null, db = null) {
     return await resp.json();
 }
 
-let luoguLock = Promise.resolve();
+let luoguLock = sleep(60 * 1000);
 /**
  * @param {number} uid
  * @param {number | null} duration
@@ -258,7 +258,7 @@ function parsePid(prob) { return `CF${prob.contestId}${prob.index}`; }
 /** @param {string} handle*/
 function parseUid(handle) { return cfHandleMap.get(handle); }
 
-let codeforcesLock = Promise.resolve();
+let codeforcesLock = sleep(2026);
 /** @type {Map<string, CodeForcesProblem[]>} */
 let codeforcesProblemset = new Map();
 let codeforcesProblemsetLastUpdate = 0;
