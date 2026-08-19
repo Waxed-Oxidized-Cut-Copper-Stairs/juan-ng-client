@@ -5,7 +5,7 @@ log("离屏页面 >w<");
 import { sleep } from "../public/lib/asyncio.js";
 import { error, log } from "../public/lib/core.js";
 import { CacheDB } from "../public/lib/database.js";
-import { randint } from "../public/lib/random.js";
+import { randint, shuffle } from "../public/lib/random.js";
 
 const proxyURL = "http://127.0.0.1:6969";
 log(`服务端地址 ${proxyURL}`);
@@ -386,6 +386,7 @@ async function mainloop() {
         lgDone = 0;
         cfDone = 0;
         promises.push(updateCodeforcesProblemset());
+        const lg = [];
         for (const uid of lgUIDs) {
             let ex = await luoguDB.getExpiration(luoguKey(uid));
             const d = luoguDuration(uid);
@@ -394,17 +395,18 @@ async function mainloop() {
                 await luoguDB.expire(luoguKey(uid));
                 ex = 0;
             }
-            if (ex === null || ex > Date.now()) {
-                ++lgDone;
-            } else {
-                promises.push(crawlLuogu(uid, d)
-                    .catch(err => {
-                        error(err);
-                    }).finally(() => {
-                        ++lgDone;
-                        checkProgress();
-                    }));
-            }
+            if (ex === null || ex > Date.now()) ++lgDone;
+            else lg.push([uid, d]);
+        }
+        shuffle(lg);
+        for (const [uid, d] of lg) {
+            promises.push(crawlLuogu(uid, d)
+                .catch(err => {
+                    error(err);
+                }).finally(() => {
+                    ++lgDone;
+                    checkProgress();
+                }));
         }
         for (const handle of cfHandles) {
             // CodeForces 不存在永久缓存，故不需要特殊处理 pri 变化
