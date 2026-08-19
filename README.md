@@ -91,3 +91,12 @@ git checkout -fB release FETCH_HEAD
 ---
 
 弹出框效果不稳定，且快速移动鼠标时位置不变。
+
+---
+
+启用分屏时，无法正确对分屏的两个页面实时更新信息。
+
+目前 Chrome、Edge、Firefox 均支持分屏标签页，但 Chrome Extensions API 和 Web Extensions API 均没有提供对应的查询接口，只能查询到分屏标签页中具有焦点的一个。
+
+除了更新前台页面，本插件还在监听 `visibilitychange` 时更新数据，但分屏标签页切换不触发 `visibilitychange`。
+
