@@ -12,6 +12,7 @@
 .detailview {
     display: flex;
     gap: 5px;
+    padding: 0 3px;
 }
 
 .detailviewL {
@@ -66,6 +67,10 @@
 
 .wa {
     color: var(--red);
+}
+
+.na {
+    color: var(--blue);
 }
 
 .emphasize {
