@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-console.log("离屏页面 >w<");
+log("离屏页面 >w<");
 
 import { sleep } from "../public/lib/asyncio.js";
-import { error } from "../public/lib/core.js";
+import { error, log } from "../public/lib/core.js";
 import { CacheDB } from "../public/lib/database.js";
 import { randint } from "../public/lib/random.js";
 
 const proxyURL = "http://127.0.0.1:6969";
-console.log(`服务端地址 ${proxyURL}`);
+log(`服务端地址 ${proxyURL}`);
 
 const CODEFORCES_PROBLEMSET_GAP = 7 * 24 * 60 * 60 * 1000;
 const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
@@ -166,7 +166,7 @@ function addCFPractice(handle, practice) {
  * @param {CacheDB | null} db
  */
 async function fetchAPI(url, key = null, db = null) {
-    console.log("fetchAPI", url);
+    log(`fetchAPI ${url}`);
     let resp;
     try {
         resp = await fetch(url);
@@ -199,7 +199,7 @@ async function crawlLuogu(uid, duration = null) {
     const key = luoguKey(uid);
     const nxt = luoguLock.then(async () => {
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
-        console.log("fetchProxy", url);
+        log(`fetchProxy ${url}`);
         let resp;
         try {
             resp = await fetch(new URL("proxy", proxyURL), { headers: { "x-target-url": url } });

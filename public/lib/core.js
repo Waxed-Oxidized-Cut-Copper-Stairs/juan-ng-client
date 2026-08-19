@@ -39,5 +39,13 @@ function warning(...obj) {
     console.trace();
     console.groupEnd();
 }
+function log(...obj) {
+    console.groupCollapsed(`%c${fmtShortDate()} %c`, "color: #66ccff", "color: black", obj[0]);
+    for (let i = 1; i < obj.length; ++i)
+        console.log(obj[i]);
+    console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
+    console.trace();
+    console.groupEnd();
+}
 
-export { error, warning };
+export { error, warning, log };
