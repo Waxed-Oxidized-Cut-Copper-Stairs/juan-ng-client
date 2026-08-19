@@ -377,6 +377,21 @@ async function clearCache() {
     await codeforcesDB.clear();
 }
 
+async function initialize() {
+    for (const uid of lgUIDs) {
+        /** @type {LuoguPracticeNew} */
+        const data = await luoguDB.get(luoguKey(uid));
+        if (!data) continue;
+        addLGPractice(uid, data);
+    }
+    for (const handle of cfHandles) {
+        /** @type {CodeForcesPractice} */
+        const data = await codeforcesDB.get(codeforcesKey(handle));
+        if (!data) continue;
+        addCFPractice(handle, data);
+    }
+}
+
 let mainloopActive = false;
 async function mainloop() {
     if (mainloopActive) return;
@@ -429,12 +444,7 @@ async function mainloop() {
     }
 }
 
-for (const uid of lgUIDs) {
-    /** @type {LuoguPracticeNew} */
-    const data = await luoguDB.get(luoguKey(uid));
-    if (!data) continue;
-    addLGPractice(uid, data);
-}
+await initialize();
 
 chrome.runtime.onMessage.removeListener(tempListener);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
