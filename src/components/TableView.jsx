@@ -62,7 +62,7 @@ function RowView({ account, profile, problems }) {
             {problems.map(({ problem, situation }) => {
                 return (
                     <div key={problem.pid} className={styles.cell}>
-                        {situation.submitted.has(account.luogu) && !situation[1].has(account.luogu) && <div className={styles.submitted}>✗</div>}
+                        {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
                         {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
                     </div>
                 )
@@ -92,18 +92,17 @@ export default function TableView({ users, problems }) {
         const promises = [];
         for (const problem of problems) {
             const idx = newProb.length;
-            newProb.push({ problem });
+            newProb.push({
+                problem,
+                situation: {
+                    passed: new Set(),
+                    submitted: new Set()
+                }
+            });
             promises.push(acquireProblem(problem.pid).then((situation) => {
                 if (situation) {
-                    newProb[idx].situation = {
-                        passed: new Set(situation.passed),
-                        submitted: new Set(situation.submitted)
-                    };
-                } else {
-                    newProb[idx].situation = {
-                        passed: new Set(),
-                        submitted: new Set()
-                    };
+                    newProb[idx].situation.passed = new Set(situation.passed);
+                    newProb[idx].situation.submitted = new Set(situation.submitted);
                 }
             }));
         }
