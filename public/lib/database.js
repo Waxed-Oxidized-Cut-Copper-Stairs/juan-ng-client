@@ -171,7 +171,7 @@ class CacheDB {
     async expire(key) {
         assertString(key, "key");
         try {
-            const transaction = this.db.transaction([this.storekey, this.timestampkey], "readwrite");
+            const transaction = this.db.transaction(this.timestampkey, "readwrite");
             const store = transaction.objectStore(this.timestampkey);
             store.put(0, key);
             await transactionWrapper(transaction);
