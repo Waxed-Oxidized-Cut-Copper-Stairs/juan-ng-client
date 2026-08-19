@@ -144,11 +144,11 @@ function addCFPractice(handle, practice) {
     const uid = parseUid(handle);
     for (const prob of submitted) {
         const p = parseCodeforcesProblem(prob);
-        if (p) addSubmitted(parsePid(p), uid);
+        if (p) addSubmitted(p, uid);
     }
     for (const prob of passed) {
         const p = parseCodeforcesProblem(prob);
-        if (p) addPassed(parsePid(p), uid);
+        if (p) addPassed(p, uid);
     }
 }
 
@@ -239,11 +239,11 @@ async function crawlLuogu(uid, duration = null) {
 /** @param {CodeForcesProblemBrief} prob */
 function parseCodeforcesProblem(prob) {
     const a = codeforcesProblemset.get(prob.name);
-    if (!a) return null;
+    if (!a) return parsePid(prob);
     for (const p of a) {
-        if (Math.abs(p.contestId - prob.contestId) <= 1) return p;
+        if (Math.abs(p.contestId - prob.contestId) <= 1) return parsePid(p);
     }
-    return null;
+    return parsePid(prob);
 }
 /** @param {CodeForcesProblemBrief} prob */
 function parsePid(prob) { return `CF${prob.contestId}${prob.index}`; }
