@@ -422,7 +422,13 @@ chrome.runtime.onMessage.removeListener(tempListener);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "offscreen") return;
-    mainloop();
+    switch (type) {
+        case "query-users":
+        case "query-pid":
+        case "query-profile":
+            mainloop();
+            break;
+    }
     switch (type) {
         case "query-users":
             sendResponse(users);
@@ -440,13 +446,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ done: lasLgDone + lasCfDone, total: lgUIDs.length + cfHandles.length });
             break;
         case "flush-cache":
-            flushCache();
+            flushCache().then(() => mainloop());
             break;
         case "flush-specific-cache":
-            flushSpecificCache(data);
+            flushSpecificCache(data).then(() => mainloop());
             break;
         case "clear-cache":
-            clearCache();
+            clearCache().then(() => mainloop());
             break;
         case "is-ready":
             chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });
