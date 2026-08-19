@@ -13,6 +13,16 @@ async function transactionWrapper(transaction) {
     });
 }
 
+function assert(condition, msg) {
+    if (!condition) throw new TypeError(msg);
+}
+function assertString(value, name = "value") {
+    assert(typeof value === "string", `${name} 应当为 string 类型，但实际是 ${typeof value}`);
+}
+function assertNumberOrNull(value, name = "value") {
+    assert(value === null || (typeof value === "number" && !Number.isNaN(value)), `${name} 应当为 number | null 类型，但实际是 ${typeof value}`);
+}
+
 /** @template T */
 class CacheDB {
     /** @param {string} root */
@@ -54,6 +64,7 @@ class CacheDB {
      * @returns {Promise<T | undefined>} 
      */
     async get(key) {
+        assertString(key, "key");
         try {
             const transaction = this.db.transaction([this.storekey, this.timestampkey], "readonly");
             const store = transaction.objectStore(this.storekey);
@@ -66,9 +77,10 @@ class CacheDB {
     }
     /**
      * @param {string} key
-     * @returns {Promise<number | undefined>} 
+     * @returns {Promise<number | null | undefined>} 
      */
     async getExpiration(key) {
+        assertString(key, "key");
         try {
             const transaction = this.db.transaction(this.timestampkey, "readonly");
             const store = transaction.objectStore(this.timestampkey);
@@ -80,17 +92,20 @@ class CacheDB {
         }
     }
     /**
-     * 此函数在不指定 t 时返回 key 是否临期，临期指 10s 内将过期
+     * 返回缓存是否有效
      * @param {string} key
+     * @param {number | null} [t=null]
      * @returns {Promise<boolean>}
      */
-    async satisfied(key, t) {
+    async satisfied(key, t = null) {
+        assertString(key, "key");
+        assertNumberOrNull(t, "t");
         try {
             const transaction = this.db.transaction([this.timestampkey], "readonly");
             const store = transaction.objectStore(this.timestampkey);
             const request = store.get(key);
             await transactionWrapper(transaction);
-            return (request.result === null || request.result > (t ?? Date.now() + 10000));
+            return (request.result === null || request.result > (t ?? Date.now()));
         } catch (err) {
             throw new DBError("数据库异常", { cause: err });
         }
@@ -100,6 +115,7 @@ class CacheDB {
      * @returns {Promise<void>}
      */
     async erase(key) {
+        assertString(key, "key");
         try {
             const transaction = this.db.transaction([this.storekey, this.timestampkey], "readwrite");
             const store1 = transaction.objectStore(this.timestampkey);
@@ -113,9 +129,13 @@ class CacheDB {
     }
     /**
      * @param {string} key
+     * @param {T} val
+     * @param {number | null} expiration
      * @returns {Promise<void>}
      */
     async set(key, val, expiration = null) {
+        assertString(key, "key");
+        assertNumberOrNull(expiration, "expiration");
         try {
             const transaction = this.db.transaction([this.storekey, this.timestampkey], "readwrite");
             const store1 = transaction.objectStore(this.timestampkey);
@@ -129,9 +149,12 @@ class CacheDB {
     }
     /**
      * @param {string} key
+     * @param {number | null} expiration
      * @returns {Promise<void>}
      */
     async setExpiration(key, expiration = null) {
+        assertString(key, "key");
+        assertNumberOrNull(expiration, "expiration");
         try {
             const transaction = this.db.transaction(this.timestampkey, "readwrite");
             const store = transaction.objectStore(this.timestampkey);
@@ -146,6 +169,7 @@ class CacheDB {
      * @returns {Promise<void>}
      */
     async expire(key) {
+        assertString(key, "key");
         try {
             const transaction = this.db.transaction([this.storekey, this.timestampkey], "readwrite");
             const store = transaction.objectStore(this.timestampkey);
