@@ -387,10 +387,17 @@ async function mainloop() {
         cfDone = 0;
         promises.push(updateCodeforcesProblemset());
         for (const uid of lgUIDs) {
-            if (await luoguDB.satisfied(luoguKey(uid))) {
+            let ex = await luoguDB.getExpiration(luoguKey(uid));
+            const d = luoguDuration(uid);
+            // 处理 pri 变化
+            if (ex === null && d) {
+                await luoguDB.expire(luoguKey(uid));
+                ex = 0;
+            }
+            if (ex === null || ex > Date.now()) {
                 ++lgDone;
             } else {
-                promises.push(crawlLuogu(uid, luoguDuration(uid))
+                promises.push(crawlLuogu(uid, d)
                     .catch(err => {
                         error(err);
                     }).finally(() => {
@@ -400,6 +407,7 @@ async function mainloop() {
             }
         }
         for (const handle of cfHandles) {
+            // CodeForces 不存在永久缓存，故不需要特殊处理 pri 变化
             if (await codeforcesDB.satisfied(codeforcesKey(handle))) {
                 ++cfDone;
             } else {
