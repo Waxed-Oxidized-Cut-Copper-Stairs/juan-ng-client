@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Generic.module.css";
 import { acquireUserProfile } from "../protocol_v2";
@@ -235,20 +235,21 @@ export default function FadeAnimation({ children, visible, jumpin = false }) {
 }
 
 /**
- * @typedef {"top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | "left-top" | "left-bottom" | "right-top" | "right-bottom"} Anchor
+ * @typedef {"top" | "bottom" | "left" | "right" | "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right" | "left-top" | "left-center" | "left-bottom" | "right-top" | "right-center" | "right-bottom"} Anchor
  * @param {Anchor} anchor
  * @param {DOMRect} rect
  * @param {number} width
  * @param {number} height
- * @param {number} gap
+ * @param {number} [x=null]
+ * @param {number} [y=null]
+ * @param {number} [gap=5]
  */
-function getCoord(anchor, rect, width, height, gap = 5) {
-    if (!anchor.includes("-")) anchor += "-center";
-    let top = rect.top, left = rect.left;
-    if (anchor.startsWith("top-")) top = rect.top - height - gap;
-    else if (anchor.startsWith("bottom-")) top = rect.bottom + gap;
-    else if (anchor.startsWith("left-")) left = rect.left - width - gap;
-    else if (anchor.startsWith("right-")) left = rect.right + gap;
+function getCoord(anchor, rect, width, height, x = null, y = null, gap = 5) {
+    let top = y ? y - height / 2 : rect.top, left = x ? x - width / 2 : rect.left;
+    if (anchor.startsWith("top")) top = rect.top - height - gap;
+    else if (anchor.startsWith("bottom")) top = rect.bottom + gap;
+    else if (anchor.startsWith("left")) left = rect.left - width - gap;
+    else if (anchor.startsWith("right")) left = rect.right + gap;
     if (anchor.endsWith("-center")) {
         if (anchor == "top-center" || anchor == "bottom-center") left = rect.left + (rect.width - width) / 2;
         else top = rect.top + (rect.height - height) / 2;
@@ -277,14 +278,19 @@ function clampCoord(anchor, left, top, width, height, minX, minY, maxX, maxY) {
     return { left, top };
 }
 /**
- * 注意：使用此组件时不应该手动传入 visible 和 targetRef 参数
+ * 注意：使用此组件时不应该手动传入 visible, targetRef 和 mouseStore 参数
  * @param {Object} options
  * @param {Anchor[]} [options.anchor]
+ * @param {boolean} [options.strict]
  */
-export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...rest }) {
+export function FloatDiv({ children, anchor = ["left"], strict = false, visible, targetRef, store, ...rest }) {
     const popupRef = useRef(null);
     const [top, setTop] = useState(0);
     const [left, setLeft] = useState(0);
+    /** @type {{x: number | null, y: number | null}} */
+    const { x: mouseX, y: mouseY } = useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const rx = mouseX === null ? null : Math.floor(mouseX);
+    const ry = mouseY === null ? null : Math.floor(mouseY);
     useLayoutEffect(() => {
         if (visible && targetRef.current && popupRef.current) {
             requestAnimationFrame(() => {
@@ -294,8 +300,19 @@ export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...r
                 const height = popupRef.current.offsetHeight;
                 let ok = false;
                 const test = (a) => {
-                    const { top, left } = getCoord(a, rect, width, height);
-                    const coord = clampCoord(a, left, top, width, height, 0, 0, window.innerWidth, window.innerHeight);
+                    if (!rx && !ry && !a.includes("-")) a += "-center";
+                    const { top, left } = getCoord(a, rect, width, height, rx, ry);
+                    let minX = 0, minY = 0, maxX = window.innerWidth, maxY = window.innerHeight;
+                    if (strict) {
+                        if (a.startsWith("left") || a.startsWith("right")) {
+                            minY = rect.top;
+                            maxY = rect.bottom;
+                        } else {
+                            minX = rect.left;
+                            maxX = rect.right;
+                        }
+                    }
+                    const coord = clampCoord(a, left, top, width, height, minX, minY, maxX, maxY);
                     if (coord) {
                         setTop(coord.top);
                         setLeft(coord.left);
@@ -313,14 +330,14 @@ export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...r
                     }
                     if (!ok) {
                         const a = anchor[0] ?? "left";
-                        const { top, left } = getCoord(a, rect, width, height);
+                        const { top, left } = getCoord(a, rect, width, height, rx, ry);
                         setTop(Math.max(Math.min(top, window.innerHeight - height), 0));
                         setLeft(Math.max(Math.min(left, window.innerWidth - width), 0));
                     }
                 }
             });
         }
-    }, [visible, targetRef]);
+    }, [visible, targetRef, rx, ry]);
     return (
         <FadeAnimation visible={visible}>
             <div
@@ -345,12 +362,35 @@ export function FloatDiv({ children, anchor = ["left"], visible, targetRef, ...r
 export function FloatDivBinding({ children, targetRef, ...rest }) {
     return <div ref={targetRef} {...rest}>{children}</div>
 }
-export function FloatDivContainer({ children, holdFloat = true }) {
+function createMouseStore() {
+    let snapshot = { x: 0, y: 0 };
+    const hooks = new Set();
+    return {
+        subscribe(func) {
+            hooks.add(func);
+            return () => hooks.delete(func);
+        },
+        getSnapshot() { return snapshot; },
+        update(x, y) {
+            if (snapshot.x !== x || snapshot.y !== y) {
+                snapshot = { x, y };
+                hooks.forEach((func) => func());
+            }
+        },
+    };
+}
+export function FloatDivContainer({ children, holdFloat = true, steady = true }) {
     const [visible, setVisible] = useState(false);
     const targetRef = useRef(null);
     const isHoveringBinding = useRef(false);
     const isHoveringFloat = useRef(false);
     const hideTimerRef = useRef(null);
+    const mouseRef = useRef(null);
+    if (!mouseRef.current) {
+        mouseRef.current = createMouseStore();
+        if (steady) mouseRef.current.update(null, null);
+    }
+    const store = mouseRef.current;
     function clearHideTimer() {
         if (hideTimerRef.current) {
             clearTimeout(hideTimerRef.current);
@@ -376,8 +416,13 @@ export function FloatDivContainer({ children, holdFloat = true }) {
                 onMouseEnter: (e) => {
                     clearHideTimer();
                     isHoveringBinding.current = true;
+                    if (!steady) store.update(e.clientX, e.clientY);
                     setVisible(true);
                     child.props.onMouseEnter?.(e);
+                },
+                onMouseMove: (e) => {
+                    if (!steady) store.update(e.clientX, e.clientY);
+                    child.props.onMouseMove?.(e);
                 },
                 onMouseLeave: (e) => {
                     isHoveringBinding.current = false;
@@ -389,6 +434,7 @@ export function FloatDivContainer({ children, holdFloat = true }) {
             return cloneElement(child, {
                 visible,
                 targetRef,
+                store,
                 onMouseEnter: (e) => {
                     if (holdFloat) {
                         clearHideTimer();

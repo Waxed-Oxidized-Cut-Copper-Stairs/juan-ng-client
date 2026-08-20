@@ -78,8 +78,8 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                 onMouseEnter={() => setVisible(true)}
                 onMouseLeave={() => setVisible(false)}
             >
-                <FloatDivContainer>
-                    <FloatDiv>
+                <FloatDivContainer steady={false}>
+                    <FloatDiv anchor={["left", "right"]} strict={true}>
                         <div className={styles.quickoperation}>
                             <div className={styles.detailview}>
                                 <div className={styles.detailviewL}>
