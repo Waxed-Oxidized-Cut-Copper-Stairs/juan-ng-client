@@ -228,7 +228,7 @@ function Card({ pid }) {
                     </GroupView>
                     <div>
                         <p className={styles.tip}>统计数据非实时更新</p>
-                        <Button onClick={() => { flushCache(); }}>刷新缓存</Button>
+                        <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
                     </div>
                 </div>
             </div>
