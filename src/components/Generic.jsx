@@ -79,8 +79,16 @@ export function ShadowRoot({ children }) {
     );
 }
 
-export function Button({ children, onClick }) {
-    return <button className={styles.button} onClick={onClick}>{children}</button>
+export function Button({ children, onClick, confirm = null }) {
+    return <button
+        className={styles.button}
+        onClick={() => {
+            if (confirm) {
+                if (!window.confirm(confirm)) return;
+            }
+            onClick();
+        }}
+    >{children}</button>
 }
 export function LineEdit({ onChange }) {
     return <input type="text" className={styles.lineedit} onChange={() => onChange()} />
