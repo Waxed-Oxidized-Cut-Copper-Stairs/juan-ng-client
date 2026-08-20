@@ -2,7 +2,7 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { flushCache } from "./protocol_v2.js";
+import { clearCache, flushCache } from "./protocol_v2.js";
 import { Button } from "./components/Generic";
 import styles from "./popup.module.css";
 
@@ -13,15 +13,13 @@ export default function Popup() {
         <>
             <header className={styles.header}>
                 <div className={styles.title}>联考水表机</div>
-                <div>版本 {versionName} [React {__REACT_VERSION__}, Vite {__VITE_VERSION__}]</div>
+                <div>版本 {versionName}</div>
+                <div>React {__REACT_VERSION__}, Vite {__VITE_VERSION__}</div>
             </header>
             <main className={styles.main}>
                 <div>
-                    修改 client/dist/data.js 以调整账号和组。
-                    <br />
-                    修改后需要重新加载扩展才生效。
-                    <br />
-                    <Button onClick={() => { flushCache(); }}>刷新缓存</Button>
+                    <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
+                    <Button onClick={() => { clearCache(); }} confirm="此操作将清空缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况请使用“刷新缓存”。确定要清空缓存吗？">清空缓存</Button>
                 </div>
                 <div>
                     本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。
