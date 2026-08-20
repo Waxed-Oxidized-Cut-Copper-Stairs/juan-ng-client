@@ -252,7 +252,7 @@ export default function FadeAnimation({ children, visible, jumpin = false }) {
  * @param {number} [y=null]
  * @param {number} [gap=5]
  */
-function getCoord(anchor, rect, width, height, x = null, y = null, gap = 5) {
+export function getCoord(anchor, rect, width, height, x = null, y = null, gap = 5) {
     let top = y ? y - height / 2 : rect.top, left = x ? x - width / 2 : rect.left;
     if (anchor.startsWith("top")) top = rect.top - height - gap;
     else if (anchor.startsWith("bottom")) top = rect.bottom + gap;
@@ -273,10 +273,12 @@ function getCoord(anchor, rect, width, height, x = null, y = null, gap = 5) {
  * @param {number} top
  * @param {number} width
  * @param {number} height
+ * @param {number} minX
+ * @param {number} minY
  * @param {number} maxX
  * @param {number} maxY
  */
-function clampCoord(anchor, left, top, width, height, minX, minY, maxX, maxY) {
+export function clampCoord(anchor, left, top, width, height, minX, minY, maxX, maxY) {
     if (left < minX && anchor.startsWith("left")) return null;
     if (left + width > maxX && anchor.startsWith("right")) return null;
     left = Math.max(Math.min(left, maxX - width), minX);
