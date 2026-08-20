@@ -269,10 +269,14 @@ function Training() {
     const [visible, setVisible] = useState(false);
     const [{ problems }] = useState(() => {
         const node = document.getElementById("lentille-context");
-        const content = JSON.parse(node.textContent);
-        /** @type {LuoguTraining} */
-        const training = content.data.training;
-        return { problems: training.problems };
+        try {
+            const content = JSON.parse(node.textContent);
+            /** @type {LuoguTraining} */
+            const training = content.data.training;
+            return { problems: training.problems };
+        } catch (err) {
+            return {};
+        }
     });
     useEffect(() => {
         /** @type {number} */
@@ -318,7 +322,13 @@ function Training() {
                                 <span style={{ marginRight: "3px" }}>显示范围</span>
                                 <ComboBox items={items} selected={selected} setSelected={setSelected} />
                             </div>
-                            <TableView users={aim} problems={problems} />
+                            {problems === undefined ? (
+                                <div className={styles.banner} onClick={() => window.location.reload()}>
+                                    无法读取题单数据，请刷新页面
+                                </div>
+                            ) : (
+                                <TableView users={aim} problems={problems} />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -337,7 +347,20 @@ function App() {
     const [trainingElement, setTrainingElement] = useState(false);
     const [pid, setPid] = useState(null);
     const guardId = useRef(null);
+    const guardTableId = useRef(null);
     const sideBarObserver = new MutationObserver(mutations => update());
+    function clearGuardTimer() {
+        if (guardId.current) {
+            clearTimeout(guardId.current);
+            guardId.current = null;
+        }
+    }
+    function clearGuardTableTimer() {
+        if (guardTableId.current) {
+            clearTimeout(guardTableId.current);
+            guardTableId.current = null;
+        }
+    }
     function update() {
         const newPid = getPid();
         const side = document.getElementsByClassName("side")[0];
@@ -355,10 +378,7 @@ function App() {
         }
     }
     function guard(cnt = 0) {
-        if (guardId.current) {
-            clearTimeout(guardId.current);
-            guardId.current = null;
-        }
+        clearGuardTimer();
         update();
         if (cnt < 10) {
             guardId.current = setTimeout(() => {
@@ -366,13 +386,23 @@ function App() {
             }, 100);
         }
     }
+    function _guardTable(cnt = 0) {
+        const nd1 = document.querySelector(".header-block>.header-card>.bottom-row>.left>.menu");
+        const nd2 = document.querySelector("main");
+        if (nd1 && nd2) {
+            setTrainingHeaderElement(nd1);
+            setTrainingElement(nd2);
+        } else if (cnt < 10) {
+            guardTableId.current = setTimeout(() => {
+                _guardTable(cnt + 1);
+            }, 100);
+        }
+    }
     function guardTable() {
         const url = new URL(location.href);
         const re = new RegExp("^/training/\\d+$");
-        console.log("guardTable");
         if (re.test(url.pathname)) {
-            setTrainingHeaderElement(document.querySelector(".header-block>.header-card>.bottom-row>.left>.menu"));
-            setTrainingElement(document.querySelector("main"));
+            _guardTable();
         } else {
             setTrainingHeaderElement(null);
             setTrainingElement(null);
@@ -390,10 +420,8 @@ function App() {
             });
             return () => {
                 unload();
-                if (guardId.current) {
-                    clearTimeout(guardId.current);
-                    guardId.current = null;
-                }
+                clearGuardTimer();
+                clearGuardTableTimer();
             };
         }
     }, []);
