@@ -112,10 +112,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener(details => {
-    const url = new URL(details.url);
-    if (url.hostname === "www.luogu.com.cn" || url.hostname === "www.luogu.me") {
-        chrome.tabs.sendMessage(details.tabId, { type: "route" }).catch(err => error(err));
-    }
+    chrome.tabs.sendMessage(details.tabId, { type: "route" }).catch(err => error(err));
 });
 
 console.log("Service Worker Loaded >w<");
