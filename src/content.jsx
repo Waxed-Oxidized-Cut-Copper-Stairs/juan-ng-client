@@ -16,6 +16,7 @@ import cssText3 from "./components/GroupView.module.css?inline";
 import cssText4 from "./components/StatusBar.module.css?inline";
 import cssText5 from "./components/TableView.module.css?inline";
 import TableView from "./components/TableView.jsx";
+import { log } from "../public/lib/core.js";
 
 const cssText = cssText1 + cssText2 + cssText3 + cssText4 + cssText5;
 
@@ -35,84 +36,70 @@ function StyleSheetLoader() {
 function DropBox() {
     const [pid, setPid] = useState(null);
     const [visible, setVisible] = useState(false);
+    const [current, setCurrent] = useState(null);
     const dropboxRef = useRef(null);
-    const currentRef = useRef(null);
-    const showTimerRef = useRef(null);
-    const hideTimerRef = useRef(null);
-    const clearShowTimer = useCallback(() => {
-        console.log("clearShowTimer");
-        if (showTimerRef.current) {
-            clearTimeout(showTimerRef.current);
-            showTimerRef.current = null;
-        }
-    }, []);
-    const clearHideTimer = useCallback(() => {
-        console.log("clearHideTimer");
-        if (hideTimerRef.current) {
-            clearTimeout(hideTimerRef.current);
-            hideTimerRef.current = null;
-        }
-    }, []);
-    const hideDropboxImmediately = useCallback(() => {
-        if (!visible) return;
-        console.log("hideDropboxImme");
-        // clearShowTimer();
-        clearHideTimer();
-        setVisible(false);
-        currentRef.current = null;
-    }, [visible, clearShowTimer, clearHideTimer]);
-    const showDropboxImmediately = useCallback((newPid) => {
-        if (visible) return;
-        console.log("showDropboxImme", newPid);
-        clearShowTimer();
-        clearHideTimer();
+    const nxtRef = useRef(null);
+    const nxtPidRef = useRef(null);
+    const hideRef = useRef(false);
+    const showNow = useCallback(() => {
+        if (nxtRef.current === null) return;
         setVisible(true);
-        setPid(newPid);
-    }, [visible, clearShowTimer, clearHideTimer]);
-    const hideDropbox = useCallback(() => {
-        console.log("hideDropbox");
-        clearShowTimer();
-        clearHideTimer();
-        hideTimerRef.current = setTimeout(() => {
-            hideDropboxImmediately();
-            hideTimerRef.current = null;
-        }, 150);
-    }, [clearShowTimer, clearHideTimer, hideDropboxImmediately]);
-    const showDropbox = useCallback((node, newPid) => {
-        console.log("showDropbox", newPid);
-        if (visible && currentRef.current !== node) {
-            hideDropboxImmediately();
+        setCurrent(nxtRef.current);
+        setPid(nxtPidRef.current);
+        nxtRef.current = null;
+        nxtPidRef.current = null;
+    }, []);
+    const hideNow = useCallback(() => {
+        if (!hideRef.current) return;
+        setVisible(false);
+        setCurrent(null);
+        hideRef.current = false;
+        if (nxtRef.current !== null) {
+            showNow();
         }
-        currentRef.current = node;
-        clearShowTimer();
-        clearHideTimer();
-        showTimerRef.current = setTimeout(() => {
-            showDropboxImmediately(newPid);
-            showTimerRef.current = null;
+    }, [showNow]);
+    const show = useCallback((node, newPid) => {
+        if (current === node) return;
+        nxtRef.current = node;
+        nxtPidRef.current = newPid;
+        setTimeout(() => {
+            showNow();
         }, 150);
-    }, [visible, showDropboxImmediately, hideDropboxImmediately, clearShowTimer]);
-    /** @param {HTMLAnchorElement} node */
-    function handleNode(node, signal) {
+    }, [current, showNow]);
+    const hide = useCallback(() => {
+        hideRef.current = true;
+        setTimeout(() => {
+            hideNow();
+        }, 150);
+    }, [hideNow]);
+    const hideAll = useCallback(() => {
+        setVisible(false);
+        setCurrent(null);
+        nxtRef.current = null;
+        nxtPidRef.current = null;
+        hideRef.current = false;
+    }, []);
+    const handleNode = useCallback((node, signal) => {
         if (node.hasAttribute("juan-watching")) return;
         node.setAttribute("juan-watching", "");
         node.addEventListener("mouseenter", () => {
             if (!node.href) return;
             const newPid = getPid(new URL(node.href));
             if (newPid && (!newPid.startsWith("U") || newPid.startsWith("UVA")) && !newPid.startsWith("T")) {
-                showDropbox(node, newPid);
+                show(node, newPid);
             }
         }, { signal });
         node.addEventListener("mouseleave", () => {
-            if (currentRef.current === node) hideDropbox();
+            if (current === node) hide();
         }, { signal });
         return () => {
             node.removeAttribute("juan-watching");
         };
-    }
+    }, [current, show, hide]);
     useEffect(() => {
         const abort = new AbortController();
-        document.addEventListener("visibilitychange", hideDropboxImmediately, { signal: abort.signal });
-        let unloads = [];
+        document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
+        const unloads = [];
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
@@ -140,10 +127,10 @@ function DropBox() {
             observer.disconnect();
             for (const fn of unloads) fn();
         };
-    }, [showDropbox, hideDropbox, hideDropboxImmediately]);
+    }, [hideAll, handleNode]);
     useLayoutEffect(() => {
-        if (!visible || !dropboxRef.current || !currentRef.current) return;
-        const node = currentRef.current;
+        if (!visible || !dropboxRef.current || !current) return;
+        const node = current;
         const url = new URL(location.href);
         const type = url.pathname.match("/user/\\d+/practice")
             ? "practice"
@@ -185,11 +172,10 @@ function DropBox() {
                 }
             }
         }
-        console.log(top, left);
         box.style.top = `${top}px`;
         box.style.left = `${left}px`;
         box.style.transform = `translateY(${trY})`;
-    }, [visible]);
+    }, [visible, current]);
     return (
         <ShadowRoot>
             <StyleSheetLoader />
@@ -204,8 +190,8 @@ function DropBox() {
                 >
                     <div
                         className={styles.xdropbox}
-                        onMouseEnter={() => clearHideTimer()}
-                        onMouseLeave={() => hideDropbox()}
+                        onMouseEnter={() => { hideRef.current = false; }}
+                        onMouseLeave={() => hide()}
                     >
                         <GroupView groups={users} pid={pid}>
                             <h3 className={styles.xh3}>{pid} 的通过情况</h3>
