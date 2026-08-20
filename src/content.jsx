@@ -90,6 +90,10 @@ function DropBox() {
         }, { signal });
         node.addEventListener("mouseleave", () => {
             if (current === node) hide();
+            if (nxtRef.current === node) {
+                nxtRef.current = null;
+                nxtPidRef.current = null;
+            }
         }, { signal });
         return () => {
             node.removeAttribute("juan-watching");
