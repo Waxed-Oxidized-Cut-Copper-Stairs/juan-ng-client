@@ -6,7 +6,7 @@ const users = await chrome.runtime.sendMessage({ dst: "sw", type: "query-users" 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createPortal } from "react-dom";
-import FadeAnimation, { Button, ComboBox, getPid, ShadowRoot } from "./components/Generic.jsx";
+import FadeAnimation, { Button, clampCoord, ComboBox, getPid, ShadowRoot } from "./components/Generic.jsx";
 import { GroupView } from "./components/GroupView.jsx";
 import { flushCache, subscribe } from "./protocol_v2.js";
 import styles from "./content.module.scss";
@@ -16,7 +16,6 @@ import cssText3 from "./components/GroupView.module.css?inline";
 import cssText4 from "./components/StatusBar.module.css?inline";
 import cssText5 from "./components/TableView.module.css?inline";
 import TableView from "./components/TableView.jsx";
-import { log } from "../public/lib/core.js";
 
 const cssText = cssText1 + cssText2 + cssText3 + cssText4 + cssText5;
 
@@ -141,19 +140,16 @@ function DropBox() {
                     : null;
         const rect = node.getBoundingClientRect();
         const spaceRight = window.innerWidth - rect.right;
-        const spaceTop = rect.top;
         /** @type {HTMLElement} */
         const box = dropboxRef.current;
-        let trY = "-37%";
+        let anchor;
         let top, left;
         if (spaceRight < 200) {
-            trY = "0px";
+            anchor = "bottom";
             top = rect.bottom + 5;
             left = rect.left;
         } else {
-            if (spaceTop <= 120) {
-                trY = `-${Math.min(spaceTop - 10, 100)}px`;
-            }
+            anchor = "right";
             top = (rect.top + rect.bottom) / 2;
             left = rect.right + 5;
             if (type === "practice" || type === "article") {
@@ -174,7 +170,18 @@ function DropBox() {
         }
         box.style.top = `${top}px`;
         box.style.left = `${left}px`;
-        box.style.transform = `translateY(${trY})`;
+        void box.offsetWidth;
+        if (anchor == "right") top -= 0.37 * box.offsetHeight;
+        box.style.top = `${top}px`;
+        box.style.left = `${left}px`;
+        void box.offsetWidth;
+        const coord = clampCoord(anchor, left, top, box.offsetWidth, box.offsetHeight, 0, 0, window.innerWidth, window.innerHeight);
+        if (coord) {
+            top = coord.top;
+            left = coord.left;
+        }
+        box.style.top = `${top}px`;
+        box.style.left = `${left}px`;
     }, [visible, current]);
     return (
         <ShadowRoot>
