@@ -125,7 +125,7 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                 <div>
                     <div className={styles.groupname}>{group.name}</div>
                     <div className={styles.rightview}>
-                        <QuickView ac={cntAC} wa={cntWA} tot={group.accounts.length} visible={visible} />
+                        <QuickView ac={cntAC} wa={cntWA} na={cntNA} tot={group.accounts.length} visible={visible} />
                     </div>
                 </div>
                 {div}
@@ -144,6 +144,7 @@ export function GroupView({ groups, pid, children, verbose }) {
     const [passed, setPassed] = useState(new Set());
     const [submitted, setSubmitted] = useState(new Set());
     const [profiles, setProfiles] = useState(new Map());
+    const [cntNA, setCntNA] = useState(0);
     let cancelled = false;
     async function update() {
         const situation = await acquireProblem(pid);
@@ -156,12 +157,14 @@ export function GroupView({ groups, pid, children, verbose }) {
     }
     async function updateProfile() {
         const newProfiles = new Map();
+        let newCntNA = 0;
         const promises = [];
         for (const group of groups) {
             for (const account of group.accounts) {
                 const uid = account.luogu;
                 promises.push(acquireUserProfile(uid).then((profile) => {
                     if (!profile) return;
+                    if (profile.privacy) ++newCntNA;
                     newProfiles.set(uid, profile);
                 }));
             }
@@ -169,6 +172,7 @@ export function GroupView({ groups, pid, children, verbose }) {
         await Promise.allSettled(promises);
         if (cancelled) return;
         setProfiles(newProfiles);
+        setCntNA(newCntNA);
     }
     useEffect(() => {
         const abort = new AbortController();
@@ -196,7 +200,7 @@ export function GroupView({ groups, pid, children, verbose }) {
                 <div className={styles.leftview}>{children}</div>
                 <StatusBar />
                 <div className={styles.rightview}>
-                    <QuickView ac={passed.size} wa={submitted.size} tot={tot} visible={true} />
+                    <QuickView ac={passed.size} wa={submitted.size} na={cntNA} tot={tot} visible={true} />
                 </div>
             </div>
             <OnlineStatusBar />
