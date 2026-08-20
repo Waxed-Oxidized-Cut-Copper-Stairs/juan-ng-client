@@ -15,23 +15,23 @@
     --filter-lv2: brightness(0.75);
     --filter-lv3: brightness(0.5);
 
-    @media (prefers-color-scheme: dark) {
-        & {
-            --red: #ff2233;
-            --yellow: #dcae00;
-            --green: #22b822;
-            --blue: #46a1de;
-            --fog: #666;
-            --haze: #000;
-            --text-color: #eee;
-            --light-text: #aaa;
-            --background: #222;
-            --shadow: #000;
-            --filter-lv1: brightness(1.125);
-            --filter-lv2: brightness(1.25);
-            --filter-lv3: brightness(1.5);
-        }
-    }
+    // @media (prefers-color-scheme: dark) {
+    //     & {
+    //         --red: #ff2233;
+    //         --yellow: #dcae00;
+    //         --green: #22b822;
+    //         --blue: #46a1de;
+    //         --fog: #666;
+    //         --haze: #000;
+    //         --text-color: #eee;
+    //         --light-text: #aaa;
+    //         --background: #222;
+    //         --shadow: #000;
+    //         --filter-lv1: brightness(1.125);
+    //         --filter-lv2: brightness(1.25);
+    //         --filter-lv3: brightness(1.5);
+    //     }
+    // }
 }
 
 @mixin base-font {
