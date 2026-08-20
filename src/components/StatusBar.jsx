@@ -67,7 +67,7 @@ export function OnlineStatusBar() {
     }, []);
     return (
         <FadeAnimation visible={visible}>
-            <div className={styles.onlinebar}>
+            <div className={styles.onlinebar} onClick={() => window.location.reload()}>
                 会话已过期，请刷新页面
             </div>
         </FadeAnimation>
