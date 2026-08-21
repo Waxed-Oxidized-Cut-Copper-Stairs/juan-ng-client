@@ -16,14 +16,17 @@ const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
 const INTERNAL_ERROR_GAP = 12 * 60 * 60 * 1000;
 
-const DURATION_LG_DEFAULT = null;
-const DURATION_LG_HIGH = 3 * 24 * 60 * 60 * 1000;
+const DURATION_LG_EASY = null;
+const DURATION_LG_NORMAL = 7 * 24 * 60 * 60 * 1000;
+const DURATION_LG_HARD = 3 * 24 * 60 * 60 * 1000;
 const DURATION_LG_LUNATIC = 24 * 60 * 60 * 1000;
-const DURATION_CF_DEFAULT = 3 * 24 * 60 * 60 * 1000;
-const DURATION_CF_HIGH = 24 * 60 * 60 * 1000;
+const DURATION_CF_EASY = 3 * 24 * 60 * 60 * 1000;
+const DURATION_CF_NORMAL = 24 * 60 * 60 * 1000;
+const DURATION_CF_HARD = 24 * 60 * 60 * 1000;
 const DURATION_CF_LUNATIC = 6 * 60 * 60 * 1000;
-const DURATION_AT_DEFAULT = 3 * 24 * 60 * 60 * 1000;
-const DURATION_AT_HIGH = 24 * 60 * 60 * 1000;
+const DURATION_AT_EASY = 3 * 24 * 60 * 60 * 1000;
+const DURATION_AT_NORMAL = 24 * 60 * 60 * 1000;
+const DURATION_AT_HARD = 24 * 60 * 60 * 1000;
 const DURATION_AT_LUNATIC = 6 * 60 * 60 * 1000;
 
 const tempListener = (message, sender, sendResponse) => {
@@ -96,21 +99,24 @@ function codeforcesKey(handle) { return `${handle}.status`; }
 function atcoderKey(handle) { return `${handle}.status`; }
 function luoguDuration(uid) {
     const p = lgPriMap.get(uid);
-    if (p >= 2) return DURATION_LG_LUNATIC;
-    else if (p == 1) return DURATION_LG_HIGH;
-    return DURATION_LG_DEFAULT;
+    if (p >= 3) return DURATION_LG_LUNATIC;
+    else if (p == 2) return DURATION_LG_HARD;
+    else if (p == 1) return DURATION_LG_NORMAL;
+    return DURATION_LG_EASY;
 }
 function codeforcesDuration(handle) {
     const p = cfPriMap.get(handle);
-    if (p >= 2) return DURATION_CF_LUNATIC;
-    else if (p == 1) return DURATION_CF_HIGH;
-    return DURATION_CF_DEFAULT;
+    if (p >= 3) return DURATION_CF_LUNATIC;
+    else if (p == 2) return DURATION_CF_HARD;
+    else if (p == 1) return DURATION_CF_NORMAL;
+    return DURATION_CF_EASY;
 }
 function atcoderDuration(handle) {
     const p = atPriMap.get(handle);
-    if (p >= 2) return DURATION_AT_LUNATIC;
-    else if (p == 1) return DURATION_AT_HIGH;
-    return DURATION_AT_DEFAULT;
+    if (p >= 3) return DURATION_AT_LUNATIC;
+    else if (p == 2) return DURATION_AT_HARD;
+    else if (p == 1) return DURATION_AT_NORMAL;
+    return DURATION_AT_EASY;
 }
 
 /** @type {Object<number, LuoguProfileNew>} */
