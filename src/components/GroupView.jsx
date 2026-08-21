@@ -107,10 +107,18 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                             </div>
                             <hr className={styles.hr} />
                             <div className={styles.quickoperation}>
-                                <div><Button onClick={() => flushSpecificCache(group.accounts)} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新</Button></div>
+                                <div><Button
+                                    onClick={() => {
+                                        flushSpecificCache(group.accounts, ["cf", "at"]);
+                                        const accounts = [];
+                                        for (const account of group.accounts) {
+                                            if (account.pri > 0) {
+                                                accounts.push(account);
+                                            }
+                                        }
+                                        flushSpecificCache(accounts, ["lg"]);
+                                    }}>刷新缓存</Button></div>
                                 <div><Button onClick={() => flushSpecificCache(group.accounts, ["lg"])} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button></div>
-                                <div><Button onClick={() => flushSpecificCache(group.accounts, ["cf"])}>刷新 CF</Button></div>
-                                <div><Button onClick={() => flushSpecificCache(group.accounts, ["at"])}>刷新 AT</Button></div>
                             </div>
                         </div>
                     </FloatDiv>

@@ -79,7 +79,7 @@ export function ShadowRoot({ children }) {
     );
 }
 
-export function Button({ children, onClick, confirm = null }) {
+export function Button({ children, onClick, confirm = null, ...rest }) {
     return <button
         className={styles.button}
         onClick={() => {
@@ -88,6 +88,7 @@ export function Button({ children, onClick, confirm = null }) {
             }
             onClick();
         }}
+        {...rest}
     >{children}</button>
 }
 export function LineEdit({ onChange }) {

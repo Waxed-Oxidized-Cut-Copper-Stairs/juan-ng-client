@@ -8,7 +8,7 @@ import { createRoot } from "react-dom/client";
 import { createPortal } from "react-dom";
 import FadeAnimation, { Button, clampCoord, ComboBox, getPid, ShadowRoot } from "./components/Generic.jsx";
 import { GroupView } from "./components/GroupView.jsx";
-import { flushCache, subscribe } from "./protocol_v2.js";
+import { flushCache, flushSpecificCache, subscribe } from "./protocol_v2.js";
 import styles from "./content.module.scss";
 import cssText1 from "./content.module.scss?inline";
 import cssText2 from "./components/Generic.module.css?inline";
@@ -225,10 +225,21 @@ function Card({ pid }) {
                     </GroupView>
                     <div>
                         <p className={styles.tip}>统计数据非实时更新</p>
-                        <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
-                        <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
-                        <Button onClick={() => { flushCache(["cf"]); }}>刷新 CF</Button>
-                        <Button onClick={() => { flushCache(["at"]); }}>刷新 AT</Button>
+                        <Button
+                            onClick={() => {
+                                flushCache(["cf", "at"]);
+                                const accounts = [];
+                                for (const group of users) {
+                                    for (const account of group.accounts) {
+                                        if (account.pri > 0) {
+                                            accounts.push(account);
+                                        }
+                                    }
+                                }
+                                flushSpecificCache(accounts, ["lg"]);
+                            }}
+                            title="刷新 CF/AT 和 pri>0 的洛谷缓存"
+                        >刷新缓存</Button>
                     </div>
                 </div>
             </div>
