@@ -274,7 +274,7 @@ async function crawlLuogu(uid, duration = null) {
             privacy: privacy ?? false
         }
         addLGPractice(uid, ret);
-        await luoguDB.set(key, ret, duration ? Date.now() + duration : null);
+        await luoguDB.set(key, ret, duration !== null ? Date.now() + duration : null);
     } catch (err) {
         error(err);
         await luoguDB.setExpiration(key, Date.now() + INTERNAL_ERROR_GAP);
@@ -376,7 +376,7 @@ async function crawlCodeforces(handle, duration = null) {
         /** @type {CodeForcesPractice} */
         const ret = { passed, submitted, lastUpdate };
         addCFPractice(handle, ret);
-        await codeforcesDB.set(key, ret, duration ? Date.now() + duration : null);
+        await codeforcesDB.set(key, ret, duration !== null ? Date.now() + duration : null);
     } catch (err) {
         error(err);
         await codeforcesDB.setExpiration(key, Date.now() + INTERNAL_ERROR_GAP);
@@ -442,7 +442,7 @@ async function crawlAtcoder(handle, duration = null) {
     if (fetchBroken) {
         await atcoderDB.setData(key, data);
     } else {
-        await atcoderDB.set(key, data, duration ? Date.now() + duration : null);
+        await atcoderDB.set(key, data, duration !== null ? Date.now() + duration : null);
     }
 }
 
