@@ -22,6 +22,9 @@ const DURATION_LG_LUNATIC = 24 * 60 * 60 * 1000;
 const DURATION_CF_DEFAULT = 3 * 24 * 60 * 60 * 1000;
 const DURATION_CF_HIGH = 24 * 60 * 60 * 1000;
 const DURATION_CF_LUNATIC = 6 * 60 * 60 * 1000;
+const DURATION_AT_DEFAULT = 3 * 24 * 60 * 60 * 1000;
+const DURATION_AT_HIGH = 24 * 60 * 60 * 1000;
+const DURATION_AT_LUNATIC = 6 * 60 * 60 * 1000;
 
 const tempListener = (message, sender, sendResponse) => {
     const { dst, type, data } = message;
@@ -48,33 +51,47 @@ const users = await (async () => {
 })();
 const lgUIDs = [];
 const cfHandles = [];
+const atHandles = [];
 /** @type {Map<string, number>} */
 const cfHandleMap = new Map();
+/** @type {Map<string, number>} */
+const atHandleMap = new Map();
 /** @type {Map<number, number>} */
 const lgPriMap = new Map();
-/** @type {Map<number, number>} */
+/** @type {Map<string, number>} */
 const cfPriMap = new Map();
+/** @type {Map<string, number>} */
+const atPriMap = new Map();
 for (const user of users) {
-    for (const { luogu: uid, cf: handle, pri } of user.accounts) {
+    for (const { luogu: uid, cf, at, pri } of user.accounts) {
         lgUIDs.push(uid);
-        if (handle) {
-            cfHandles.push(handle);
-            cfHandleMap.set(handle, uid);
+        if (cf) {
+            cfHandles.push(cf);
+            cfHandleMap.set(cf, uid);
+        }
+        if (at) {
+            atHandles.push(at);
+            atHandleMap.set(at, uid);
         }
         if (pri) {
             lgPriMap.set(uid, pri);
-            if (handle) cfPriMap.set(handle, pri);
+            if (cf) cfPriMap.set(cf, pri);
+            if (at) atPriMap.set(at, pri);
         }
     }
 }
 
+/** @type {CacheDB<LuoguPracticeNew>} */
 const luoguDB = new CacheDB("Luogu");
-const atcoderDB = new CacheDB("AtCoder");
+/** @type {CacheDB<CodeForcesPractice>} */
 const codeforcesDB = new CacheDB("CodeForces");
-await Promise.allSettled([luoguDB.init, atcoderDB.init, codeforcesDB.init]);
+/** @type {CacheDB<AtCoderPractice>} */
+const atcoderDB = new CacheDB("AtCoder");
+await Promise.allSettled([luoguDB.init, codeforcesDB.init, atcoderDB.init]);
 
 function luoguKey(uid) { return `${uid}`; }
 function codeforcesKey(handle) { return `${handle}.status`; }
+function atcoderKey(handle) { return `${handle}.status`; }
 function luoguDuration(uid) {
     const p = lgPriMap.get(uid);
     if (p >= 2) return DURATION_LG_LUNATIC;
@@ -86,6 +103,12 @@ function codeforcesDuration(handle) {
     if (p >= 2) return DURATION_CF_LUNATIC;
     else if (p == 1) return DURATION_CF_HIGH;
     return DURATION_CF_DEFAULT;
+}
+function atcoderDuration(handle) {
+    const p = atPriMap.get(handle);
+    if (p >= 2) return DURATION_AT_LUNATIC;
+    else if (p == 1) return DURATION_AT_HIGH;
+    return DURATION_AT_DEFAULT;
 }
 
 /** @type {Object<number, LuoguProfileNew>} */
@@ -149,7 +172,7 @@ function addLGPractice(uid, practice) {
  */
 function addCFPractice(handle, practice) {
     const { passed, submitted } = practice;
-    const uid = parseUid(handle);
+    const uid = parseCFUid(handle);
     for (const prob of submitted) {
         const p = parseCodeforcesProblem(prob);
         if (p) addSubmitted(p, uid);
@@ -157,6 +180,20 @@ function addCFPractice(handle, practice) {
     for (const prob of passed) {
         const p = parseCodeforcesProblem(prob);
         if (p) addPassed(p, uid);
+    }
+}
+/**
+ * @param {string} handle
+ * @param {AtCoderPractice} practice
+ */
+function addATPractice(handle, practice) {
+    const { passed, submitted } = practice;
+    const uid = parseATUid(handle);
+    for (const prob of submitted) {
+        addSubmitted(parseATPid(prob), uid);
+    }
+    for (const prob of passed) {
+        addPassed(parseATPid(prob), uid);
     }
 }
 
@@ -247,16 +284,16 @@ async function crawlLuogu(uid, duration = null) {
 /** @param {CodeForcesProblemBrief} prob */
 function parseCodeforcesProblem(prob) {
     const a = codeforcesProblemset.get(prob.name);
-    if (!a) return parsePid(prob);
+    if (!a) return parseCFPid(prob);
     for (const p of a) {
-        if (Math.abs(p.contestId - prob.contestId) <= 1) return parsePid(p);
+        if (Math.abs(p.contestId - prob.contestId) <= 1) return parseCFPid(p);
     }
-    return parsePid(prob);
+    return parseCFPid(prob);
 }
 /** @param {CodeForcesProblemBrief} prob */
-function parsePid(prob) { return `CF${prob.contestId}${prob.index}`; }
+function parseCFPid(prob) { return `CF${prob.contestId}${prob.index}`; }
 /** @param {string} handle*/
-function parseUid(handle) { return cfHandleMap.get(handle); }
+function parseCFUid(handle) { return cfHandleMap.get(handle); }
 
 let codeforcesLock = sleep(2026);
 /** @type {Map<string, CodeForcesProblem[]>} */
@@ -307,7 +344,7 @@ async function updateCodeforcesProblemset() {
  * @param {number | null} duration
  */
 async function crawlCodeforces(handle, duration = null) {
-    const key = `${handle}.status`;
+    const key = codeforcesKey(handle);
     const nxt = codeforcesLock.then(async () => {
         const url = `https://codeforces.com/api/user.status?handle=${handle}&lang=en`;
         return await fetchAPI(url, key, codeforcesDB);
@@ -346,35 +383,104 @@ async function crawlCodeforces(handle, duration = null) {
     }
 }
 
+/** @param {string} prob */
+function parseATPid(prob) { return `AT_${prob}`; }
+/** @param {string} handle */
+function parseATUid(handle) { return atHandleMap.get(handle); }
+
+let atcoderLock = sleep(1024);
+/**
+ * @param {string} handle
+ * @param {number | null} duration
+ */
+async function crawlAtcoder(handle, duration = null) {
+    const key = atcoderKey(handle);
+    let fetchBroken = false;
+    const nxt = atcoderLock.then(async () => {
+        const expiration = await atcoderDB.getExpiration(key);
+        const history = expiration === 0 ? {} : await atcoderDB.get(key);
+        let last = history?.lastSubmission ?? 0;
+        /** @type {Set<string>} */
+        const passed = new Set(history?.passed ?? []);
+        /** @type {Set<string>} */
+        const submitted = new Set(history?.submitted ?? []);
+        while (true) {
+            // 如果同一秒内有多次提交，可能会遗漏
+            // 这种可能性比较小，尤其是在 AT 启用 Cloudflare 之后，所以不管
+            const url = `https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user=${handle}&from_second=${last}`;
+            /** @type {AtCoderSubmission[]} */
+            try {
+                const data = await fetchAPI(url, key, atcoderDB);
+                if (!data) {
+                    fetchBroken = true;
+                    break;
+                }
+                for (const submission of data) {
+                    if (submission.result === "AC") passed.add(submission.problem_id);
+                    else submitted.add(submission.problem_id);
+                    last = submission.epoch_second + 1;
+                }
+                if (data.length < 500) break;
+                await sleep(1024);
+            } catch (err) {
+                error(err);
+                break;
+            }
+        }
+        return {
+            passed: Array.from(passed),
+            submitted: Array.from(submitted),
+            lastSubmission: last
+        };
+    });
+    // Kenkoooo API 限制 1s/req
+    atcoderLock = nxt.finally(() => sleep(1024)).catch(() => { });
+    /** @type {AtCoderPractice} */
+    const data = await nxt;
+    if (!data) return;
+    addATPractice(handle, data);
+    if (fetchBroken) {
+        await atcoderDB.setData(key, data);
+    } else {
+        await atcoderDB.set(key, data, duration ? Date.now() + duration : null);
+    }
+}
+
 function send(type, data) {
     chrome.runtime.sendMessage({ "dst": "sw", type, data });
 }
 
 let lgDone = 0;
 let cfDone = 0;
+let atDone = 0;
 let lasLgDone = 0;
 let lasCfDone = 0;
+let lasAtDone = 0;
 function checkProgress() {
-    if (lgDone == lasLgDone && cfDone == lasCfDone) return;
+    if (lgDone == lasLgDone && cfDone == lasCfDone && atDone == lasAtDone) return;
     lasLgDone = lgDone;
     lasCfDone = cfDone;
-    send("route-to-active-tabs", { type: "progress", data: { done: lgDone + cfDone, total: lgUIDs.length + cfHandles.length } });
+    lasAtDone = atDone;
+    send("route-to-active-tabs", { type: "progress", data: { done: lgDone + cfDone + atDone, total: lgUIDs.length + cfHandles.length + atHandles.length } });
     send("route-to-active-tabs", { type: "configured" });
 }
 async function flushCache() {
     await luoguDB.expireAll();
     await codeforcesDB.expireAll();
+    await atcoderDB.expireAll();
 }
 /** @param {Account[]} accounts */
 async function flushSpecificCache(accounts) {
     for (const account of accounts) {
         await luoguDB.expire(luoguKey(account.luogu));
         if (account.cf) await codeforcesDB.expire(codeforcesKey(account.cf));
+        if (account.at) await atcoderDB.expire(atcoderKey(account.at));
     }
 }
 async function clearCache() {
     await luoguDB.clear();
     await codeforcesDB.clear();
+    await atcoderDB.clear();
 }
 
 async function initialize() {
@@ -390,6 +496,12 @@ async function initialize() {
         if (!data) continue;
         addCFPractice(handle, data);
     }
+    for (const handle of atHandles) {
+        /** @type {AtCoderPractice} */
+        const data = await atcoderDB.get(atcoderKey(handle));
+        if (!data) continue;
+        addATPractice(handle, data);
+    }
 }
 
 let mainloopActive = false;
@@ -400,6 +512,7 @@ async function mainloop() {
         const promises = [];
         lgDone = 0;
         cfDone = 0;
+        atDone = 0;
         promises.push(updateCodeforcesProblemset());
         const lg = [];
         for (const uid of lgUIDs) {
@@ -433,6 +546,19 @@ async function mainloop() {
                         error(err);
                     }).finally(() => {
                         ++cfDone;
+                        checkProgress();
+                    }));
+            }
+        }
+        for (const handle of atHandles) {
+            if (await atcoderDB.satisfied(atcoderKey(handle))) {
+                ++atDone;
+            } else {
+                promises.push(crawlAtcoder(handle, atcoderDuration(handle))
+                    .catch(err => {
+                        error(err);
+                    }).finally(() => {
+                        ++atDone;
                         checkProgress();
                     }));
             }
@@ -471,7 +597,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse(profiles[data]);
             break;
         case "query-progress":
-            sendResponse({ done: lasLgDone + lasCfDone, total: lgUIDs.length + cfHandles.length });
+            sendResponse({ done: lasLgDone + lasCfDone + lasAtDone, total: lgUIDs.length + cfHandles.length + atHandles.length });
             break;
         case "flush-cache":
             flushCache().then(() => mainloop());

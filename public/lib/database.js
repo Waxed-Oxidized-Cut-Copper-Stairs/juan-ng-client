@@ -149,6 +149,22 @@ class CacheDB {
     }
     /**
      * @param {string} key
+     * @param {T} val
+     * @returns {Promise<void>}
+     */
+    async setData(key, val) {
+        assertString(key, "key");
+        try {
+            const transaction = this.db.transaction(this.storekey, "readwrite");
+            const store = transaction.objectStore(this.storekey);
+            store.put(val, key);
+            await transactionWrapper(transaction);
+        } catch (err) {
+            throw new DBError("数据库异常", { cause: err });
+        }
+    }
+    /**
+     * @param {string} key
      * @param {number | null} expiration
      * @returns {Promise<void>}
      */
