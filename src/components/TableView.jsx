@@ -142,14 +142,9 @@ export default function TableView({ users, problems }) {
         const val = new Map();
         for (const account of users) {
             const uid = account.luogu;
-            /** @type {LuoguProfileNew} */
-            const profile = profiles.get(uid);
-            if (profile && profile.privacy) val.set(uid, -1);
-            else {
-                let cnt = 0;
-                for (const { situation } of prob) if (situation.passed.has(uid)) ++cnt;
-                val.set(uid, cnt);
-            }
+            let cnt = 0;
+            for (const { situation } of prob) if (situation.passed.has(uid)) ++cnt;
+            val.set(uid, cnt);
         }
         setOrder(users.slice().sort((a, b) => val.get(b.luogu) - val.get(a.luogu)));
         setCount(val);
