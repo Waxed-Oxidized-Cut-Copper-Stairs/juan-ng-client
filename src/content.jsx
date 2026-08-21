@@ -226,6 +226,9 @@ function Card({ pid }) {
                     <div>
                         <p className={styles.tip}>统计数据非实时更新</p>
                         <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
+                        <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
+                        <Button onClick={() => { flushCache(["cf"]); }}>刷新 CF</Button>
+                        <Button onClick={() => { flushCache(["at"]); }}>刷新 AT</Button>
                     </div>
                 </div>
             </div>

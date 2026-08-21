@@ -79,20 +79,27 @@ async function acquireUID() {
     });
 }
 
-export function flushCache() {
+/** @param {Domain[]} [domains=null] */
+export function flushCache(domains = null) {
     cachedProfiles.clear();
-    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-cache" }));
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-cache", data: domains }));
 }
-/** @param {Account[]} accounts */
-export function flushSpecificCache(accounts) {
-    for (const account of accounts) {
-        cachedProfiles.delete(account.luogu);
+/**
+ * @param {Account[]} accounts
+ * @param {Domain[]} [domains=null]
+ */
+export function flushSpecificCache(accounts, domains = null) {
+    if (domains && domains.includes("lg")) {
+        for (const account of accounts) {
+            cachedProfiles.delete(account.luogu);
+        }
     }
-    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-specific-cache", data: accounts }));
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-specific-cache", data: { accounts, domains } }));
 }
-export function clearCache() {
+/** @param {Domain[]} [domains=null] */
+export function clearCache(domains = null) {
     cachedProfiles.clear();
-    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "clear-cache" }));
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "clear-cache", data: domains }));
 }
 
 /** @type {Map<string, Set<(data: any) => void>>} */

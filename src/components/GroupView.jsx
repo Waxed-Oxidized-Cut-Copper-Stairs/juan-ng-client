@@ -80,7 +80,7 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
             >
                 <FloatDivContainer steady={false}>
                     <FloatDiv anchor={["left", "right"]} strict={true}>
-                        <div className={styles.quickoperation}>
+                        <div className={styles.quickconclusion}>
                             <div className={styles.detailview}>
                                 <div className={styles.detailviewL}>
                                     <strong className={styles.ac}>{cntAC}</strong>
@@ -101,11 +101,17 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                                     <span className={styles.emphasize}> In Total</span>
                                 </div>
                             </div>
-                            <div className={styles.percentview}>
+                            <div>
                                 通过率
-                                <span className={styles.percentviewem} style={{ color: percentToColor(Math.cbrt(cntAC / (group.accounts.length - cntNA))) }}> {percentToString(cntAC, group.accounts.length - cntNA)}</span>
+                                <span className={styles.percentview} style={{ color: percentToColor(Math.cbrt(cntAC / (group.accounts.length - cntNA))) }}> {percentToString(cntAC, group.accounts.length - cntNA)}</span>
                             </div>
-                            <Button onClick={() => flushSpecificCache(group.accounts)}>刷新</Button>
+                            <hr className={styles.hr} />
+                            <div className={styles.quickoperation}>
+                                <div><Button onClick={() => flushSpecificCache(group.accounts)} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新</Button></div>
+                                <div><Button onClick={() => flushSpecificCache(group.accounts, ["lg"])} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button></div>
+                                <div><Button onClick={() => flushSpecificCache(group.accounts, ["cf"])}>刷新 CF</Button></div>
+                                <div><Button onClick={() => flushSpecificCache(group.accounts, ["at"])}>刷新 AT</Button></div>
+                            </div>
                         </div>
                     </FloatDiv>
                     <FloatDivBinding>

@@ -8,4 +8,5 @@
  *   pri?: number
  * }} Account
  * @typedef {{name: string, accounts: Account[]}} Group
+ * @typedef {"lg" | "cf" | "at"} Domain
  */

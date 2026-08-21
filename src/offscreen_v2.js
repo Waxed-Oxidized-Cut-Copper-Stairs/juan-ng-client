@@ -466,23 +466,31 @@ function checkProgress() {
     send("route-to-active-tabs", { type: "progress", data: { done: lgDone + cfDone + atDone, total: lgUIDs.length + cfHandles.length + atHandles.length } });
     send("route-to-active-tabs", { type: "configured" });
 }
-async function flushCache() {
-    await luoguDB.expireAll();
-    await codeforcesDB.expireAll();
-    await atcoderDB.expireAll();
+/** @param {Domain[]} [domains=null] */
+async function flushCache(domains = null) {
+    if (!domains) domains = ["lg", "cf", "at"];
+    if (domains.includes("lg")) await luoguDB.expireAll();
+    if (domains.includes("cf")) await codeforcesDB.expireAll();
+    if (domains.includes("at")) await atcoderDB.expireAll();
 }
-/** @param {Account[]} accounts */
-async function flushSpecificCache(accounts) {
-    for (const account of accounts) {
-        await luoguDB.expire(luoguKey(account.luogu));
-        if (account.cf) await codeforcesDB.expire(codeforcesKey(account.cf));
-        if (account.at) await atcoderDB.expire(atcoderKey(account.at));
+/**
+ * @param {Account[]} accounts
+ * @param {Domain[]} [domains=null]
+ */
+async function flushSpecificCache(accounts, domains = null) {
+    if (!domains) domains = ["lg", "cf", "at"];
+    for (const { luogu: uid, cf, at } of accounts) {
+        if (domains.includes("lg")) await luoguDB.expire(luoguKey(uid));
+        if (domains.includes("cf") && cf) await codeforcesDB.expire(codeforcesKey(cf));
+        if (domains.includes("at") && at) await atcoderDB.expire(codeforcesKey(at));
     }
 }
-async function clearCache() {
-    await luoguDB.clear();
-    await codeforcesDB.clear();
-    await atcoderDB.clear();
+/** @param {Domain[]} [domains=null] */
+async function clearCache(domains = null) {
+    if (!domains) domains = ["lg", "cf", "at"];
+    if (domains.includes("lg")) await luoguDB.clear();
+    if (domains.includes("cf")) await codeforcesDB.clear();
+    if (domains.includes("at")) await atcoderDB.clear();
 }
 
 async function initialize() {
@@ -602,13 +610,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ done: lasLgDone + lasCfDone + lasAtDone, total: lgUIDs.length + cfHandles.length + atHandles.length });
             break;
         case "flush-cache":
-            flushCache().then(() => mainloop());
+            flushCache(data).then(() => mainloop());
             break;
         case "flush-specific-cache":
-            flushSpecificCache(data).then(() => mainloop());
+            flushSpecificCache(data.accounts, data.domains).then(() => mainloop());
             break;
         case "clear-cache":
-            clearCache().then(() => mainloop());
+            clearCache(data).then(() => mainloop());
             break;
         case "is-ready":
             chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });

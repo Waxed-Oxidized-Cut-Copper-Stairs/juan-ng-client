@@ -14,6 +14,10 @@
     transition: filter 0.1s ease-in-out;
 }
 
+.button+.button {
+    margin-left: 3px;
+}
+
 .button:hover {
     filter: var(--filter-lv1);
 }

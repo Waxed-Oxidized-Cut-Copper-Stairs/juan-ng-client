@@ -1,18 +1,23 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
+.hr {
+    margin: 3px 0;
+}
+
 .quickview {
     font-size: 14px;
     font-weight: bold;
 }
 
-.quickoperation {
+.quickconclusion {
     font-size: 14px;
+    padding: 0 3px;
 }
+
 
 .detailview {
     display: flex;
     gap: 5px;
-    padding: 0 3px;
 }
 
 .detailviewL {
@@ -25,12 +30,12 @@
 }
 
 .percentview {
-    padding: 0 3px;
-}
-
-.percentviewem {
     font-size: 14px;
     font-weight: bold;
+}
+
+.quickoperation>div:not(:last-child) {
+    margin-bottom: 3px;
 }
 
 .singleview {

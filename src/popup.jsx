@@ -17,9 +17,24 @@ export default function Popup() {
                 <div>React {__REACT_VERSION__}, Vite {__VITE_VERSION__}</div>
             </header>
             <main className={styles.main}>
-                <div>
-                    <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
-                    <Button onClick={() => { clearCache(); }} confirm="此操作将清空缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况请使用“刷新缓存”。确定要清空缓存吗？">清空缓存</Button>
+                <div className={styles.operation}>
+                    <div>
+                        除非遇到重大故障或数据库混乱，一般情况下请使用“刷新缓存”，而不是“清空缓存”。
+                    </div>
+                    <div>
+                        <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
+                        <Button onClick={() => { clearCache(); }} confirm="此操作将清空缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况下请使用“刷新缓存”。确定要清空缓存吗？">清空缓存</Button>
+                    </div>
+                    <div>
+                        <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
+                        <Button onClick={() => { flushCache(["cf"]); }}>刷新 CF</Button>
+                        <Button onClick={() => { flushCache(["at"]); }}>刷新 AT</Button>
+                    </div>
+                    <div>
+                        <Button onClick={() => { clearCache(["lg"]); }} confirm="此操作将清空洛谷平台缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况下请使用“刷新缓存”。确定要清空缓存吗？">清空洛谷</Button>
+                        <Button onClick={() => { clearCache(["cf"]); }}>清空 CF</Button>
+                        <Button onClick={() => { clearCache(["at"]); }}>清空 AT</Button>
+                    </div>
                 </div>
                 <div>
                     本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。
