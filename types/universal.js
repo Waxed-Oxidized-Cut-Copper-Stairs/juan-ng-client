@@ -3,8 +3,8 @@
 /**
  * @typedef {{
  *   luogu: number,
- *   cf?: string,
- *   at?: string,
+ *   cf?: string | string[],
+ *   at?: string | string[],
  *   pri?: number
  * }} Account
  * @typedef {{name: string, accounts: Account[]}} Group

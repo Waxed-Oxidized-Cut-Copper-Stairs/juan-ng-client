@@ -65,18 +65,20 @@ const atPriMap = new Map();
 for (const user of users) {
     for (const { luogu: uid, cf, at, pri } of user.accounts) {
         lgUIDs.push(uid);
+        if (pri) lgPriMap.set(uid, pri);
         if (cf) {
-            cfHandles.push(cf);
-            cfHandleMap.set(cf, uid);
+            for (const handle of ((typeof cf === "string") ? [cf] : cf)) {
+                cfHandles.push(handle);
+                cfHandleMap.set(handle, uid);
+                if (pri) cfPriMap.set(handle, pri);
+            }
         }
         if (at) {
-            atHandles.push(at);
-            atHandleMap.set(at, uid);
-        }
-        if (pri) {
-            lgPriMap.set(uid, pri);
-            if (cf) cfPriMap.set(cf, pri);
-            if (at) atPriMap.set(at, pri);
+            for (const handle of ((typeof at === "string") ? [at] : at)) {
+                atHandles.push(handle);
+                atHandleMap.set(handle, uid);
+                if (pri) atPriMap.set(handle, pri);
+            }
         }
     }
 }
