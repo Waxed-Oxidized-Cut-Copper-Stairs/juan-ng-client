@@ -2,7 +2,7 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { clearCache, flushCache } from "./protocol_v2.js";
+import { flushCache } from "./protocol_v2.js";
 import { Button } from "./components/Generic";
 import styles from "./popup.module.css";
 
@@ -19,21 +19,13 @@ export default function Popup() {
             <main className={styles.main}>
                 <div className={styles.operation}>
                     <div>
-                        除非遇到重大故障或数据库混乱，一般情况下请使用“刷新缓存”，而不是“清空缓存”。
+                        如果遇到重大故障或数据库混乱，刷新缓存无法恢复的，请尝试：在浏览器扩展管理页面，检查扩展视图，选择 Application 页签的 IndexDB 选项，删除其下的三个数据库。
                     </div>
                     <div>
                         <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
-                        <Button onClick={() => { clearCache(); }} confirm="此操作将清空缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况下请使用“刷新缓存”。确定要清空缓存吗？">清空缓存</Button>
-                    </div>
-                    <div>
                         <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
                         <Button onClick={() => { flushCache(["cf"]); }}>刷新 CF</Button>
                         <Button onClick={() => { flushCache(["at"]); }}>刷新 AT</Button>
-                    </div>
-                    <div>
-                        <Button onClick={() => { clearCache(["lg"]); }} confirm="此操作将清空洛谷平台缓存，仅应当在遇到重大故障或数据库混乱时使用。一般情况下请使用“刷新缓存”。确定要清空缓存吗？">清空洛谷</Button>
-                        <Button onClick={() => { clearCache(["cf"]); }}>清空 CF</Button>
-                        <Button onClick={() => { clearCache(["at"]); }}>清空 AT</Button>
                     </div>
                 </div>
                 <div>

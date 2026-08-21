@@ -485,13 +485,6 @@ async function flushSpecificCache(accounts, domains = null) {
         if (domains.includes("at") && at) await atcoderDB.expire(codeforcesKey(at));
     }
 }
-/** @param {Domain[]} [domains=null] */
-async function clearCache(domains = null) {
-    if (!domains) domains = ["lg", "cf", "at"];
-    if (domains.includes("lg")) await luoguDB.clear();
-    if (domains.includes("cf")) await codeforcesDB.clear();
-    if (domains.includes("at")) await atcoderDB.clear();
-}
 
 async function initialize() {
     for (const uid of lgUIDs) {
@@ -614,9 +607,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "flush-specific-cache":
             flushSpecificCache(data.accounts, data.domains).then(() => mainloop());
-            break;
-        case "clear-cache":
-            clearCache(data).then(() => mainloop());
             break;
         case "is-ready":
             chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });

@@ -96,11 +96,6 @@ export function flushSpecificCache(accounts, domains = null) {
     }
     errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-specific-cache", data: { accounts, domains } }));
 }
-/** @param {Domain[]} [domains=null] */
-export function clearCache(domains = null) {
-    cachedProfiles.clear();
-    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "clear-cache", data: domains }));
-}
 
 /** @type {Map<string, Set<(data: any) => void>>} */
 const subscription = new Map();
