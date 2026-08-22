@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { warning } from "./core.js";
+import { warning } from "../../public/lib/core.js";
 
 class DBError extends Error { }
 

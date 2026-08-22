@@ -2,10 +2,10 @@
 
 console.log("离屏页面 >w<");
 
-import { sleep } from "../public/lib/asyncio.js";
+import { sleep } from "./lib/asyncio.js";
 import { error, log } from "../public/lib/core.js";
-import { CacheDB } from "../public/lib/database.js";
-import { randint, shuffle } from "../public/lib/random.js";
+import { CacheDB } from "./lib/database.js";
+import { randint, shuffle } from "./lib/random.js";
 
 const proxyURL = "http://127.0.0.1:6969";
 log(`服务端地址 ${proxyURL}`);

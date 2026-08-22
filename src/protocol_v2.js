@@ -6,7 +6,7 @@ protocol_v2.js
 前端与 Service Worker 通信的模块。
 */
 
-import { sleep } from "../public/lib/asyncio.js";
+import { sleep } from "./lib/asyncio.js";
 import { error } from "../public/lib/core.js";
 
 export function ping() {
