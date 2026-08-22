@@ -117,7 +117,9 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                                             }
                                         }
                                         flushSpecificCache(accounts, ["lg"]);
-                                    }}>刷新缓存</Button></div>
+                                    }}
+                                    title="刷新 CF/AT 和 pri>0 的洛谷缓存"
+                                >刷新缓存</Button></div>
                                 <div><Button onClick={() => flushSpecificCache(group.accounts, ["lg"])} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button></div>
                             </div>
                         </div>

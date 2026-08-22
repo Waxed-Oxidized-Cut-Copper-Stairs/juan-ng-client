@@ -22,10 +22,9 @@ export default function Popup() {
                         如果遇到重大故障或数据库混乱，刷新缓存无法恢复的，请尝试：在浏览器扩展管理页面，检查扩展视图，选择 Application 页签的 IndexDB 选项，删除其下的三个数据库。
                     </div>
                     <div>
-                        <Button onClick={() => { flushCache(); }} confirm="此操作将刷新缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新缓存</Button>
+                        <Button onClick={() => { flushCache(); }} confirm="此操作将刷新所有缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新所有缓存</Button>
                         <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
-                        <Button onClick={() => { flushCache(["cf"]); }}>刷新 CF</Button>
-                        <Button onClick={() => { flushCache(["at"]); }}>刷新 AT</Button>
+                        <Button onClick={() => { flushCache(["cf", "at"]); }}>刷新 CF/AT</Button>
                     </div>
                 </div>
                 <div>
