@@ -276,12 +276,19 @@ async function crawlLuogu(uid, duration = null) {
         const content = JSON.parse(doc.getElementById("lentille-context").textContent);
         const { passed, submitted, user, privacy } = content.data;
         /** @type {LuoguPracticeNew} */
-        const ret = {
-            passed, submitted,
-            name: user.name,
-            privacy: privacy ?? false
+        let ret;
+        if (privacy) {
+            ret = (await luoguDB.get(key)) ?? { passed: [], submitted: [] };
+            ret.name = user.name;
+            ret.privacy = privacy;
+        } else {
+            ret = {
+                passed, submitted,
+                name: user.name,
+                privacy: privacy ?? false
+            }
+            addLGPractice(uid, ret);
         }
-        addLGPractice(uid, ret);
         await luoguDB.set(key, ret, duration !== null ? Date.now() + duration : null);
     } catch (err) {
         error(err);
