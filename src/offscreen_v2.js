@@ -487,8 +487,16 @@ async function flushSpecificCache(accounts, domains = null) {
     if (!domains) domains = ["lg", "cf", "at"];
     for (const { luogu: uid, cf, at } of accounts) {
         if (domains.includes("lg")) await luoguDB.expire(luoguKey(uid));
-        if (domains.includes("cf") && cf) await codeforcesDB.expire(codeforcesKey(cf));
-        if (domains.includes("at") && at) await atcoderDB.expire(codeforcesKey(at));
+        if (domains.includes("cf") && cf) {
+            for (const handle of (Array.isArray(cf) ? cf : [cf])) {
+                await codeforcesDB.expire(codeforcesKey(handle));
+            }
+        }
+        if (domains.includes("at") && at) {
+            for (const handle of (Array.isArray(at) ? at : [at])) {
+                await atcoderDB.expire(atcoderKey(handle));
+            }
+        }
     }
 }
 
