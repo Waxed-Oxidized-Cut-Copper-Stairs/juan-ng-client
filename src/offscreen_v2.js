@@ -372,24 +372,29 @@ async function crawlCodeforces(handle, duration = null) {
         /** @type {CodeForcesSubmission[]} */
         const submissions = data.result;
         const lastUpdate = submissions[0]?.creationTimeSeconds ?? 0;
-        /** @type {CodeForcesProblemBrief[]} */
-        const passed = [];
-        /** @type {CodeForcesProblemBrief[]} */
-        const submitted = [];
+        /** @type {Map<string, CodeForcesProblemBrief>} */
+        const passed = new Map();
+        /** @type {Map<string, CodeForcesProblemBrief>} */
+        const submitted = new Map();
         for (const submission of submissions) {
             // 假定存在 contestId
             const contestId = submission.problem.contestId;
             const index = submission.problem.index;
             const name = submission.problem.name;
             const verdict = submission.verdict;
+            const prob = { contestId, index, name };
             if (verdict === "OK") {
-                passed.push({ contestId, index, name });
+                passed.set(parseCFPid(prob), prob);
             } else {
-                submitted.push({ contestId, index, name });
+                submitted.set(parseCFPid(prob), prob);
             }
         }
         /** @type {CodeForcesPractice} */
-        const ret = { passed, submitted, lastUpdate };
+        const ret = {
+            passed: Array.from(passed),
+            submitted: Array.from(submitted),
+            lastUpdate
+        };
         addCFPractice(handle, ret);
         await codeforcesDB.set(key, ret, duration !== null ? Date.now() + duration : null);
     } catch (err) {
