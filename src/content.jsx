@@ -16,6 +16,7 @@ import cssText3 from "./components/GroupView.module.css?inline";
 import cssText4 from "./components/StatusBar.module.css?inline";
 import cssText5 from "./components/TableView.module.css?inline";
 import TableView from "./components/TableView.jsx";
+import { OnlineStatusBar } from "./components/StatusBar.jsx";
 
 const cssText = cssText1 + cssText2 + cssText3 + cssText4 + cssText5;
 
@@ -332,6 +333,7 @@ function Training() {
                             <div className={styles.xtrainingHeader}>
                                 <span style={{ marginRight: "3px" }}>显示范围</span>
                                 <ComboBox items={items} selected={selected} setSelected={setSelected} />
+                                <OnlineStatusBar />
                             </div>
                             {problems === undefined ? (
                                 <div className={styles.banner} onClick={() => window.location.reload()}>
