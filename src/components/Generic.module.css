@@ -32,6 +32,7 @@
     display: inline-block;
     vertical-align: middle;
     width: 240px;
+    user-select: none;
 }
 
 .combobox_body {
