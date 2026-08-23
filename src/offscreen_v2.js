@@ -502,22 +502,34 @@ async function flushSpecificCache(accounts, domains = null) {
 
 async function initialize() {
     for (const uid of lgUIDs) {
-        /** @type {LuoguPracticeNew} */
-        const data = await luoguDB.get(luoguKey(uid));
-        if (!data) continue;
-        addLGPractice(uid, data);
+        try {
+            /** @type {LuoguPracticeNew} */
+            const data = await luoguDB.get(luoguKey(uid));
+            if (!data) continue;
+            addLGPractice(uid, data);
+        } catch (err) {
+            error(err);
+        }
     }
     for (const handle of cfHandles) {
-        /** @type {CodeForcesPractice} */
-        const data = await codeforcesDB.get(codeforcesKey(handle));
-        if (!data) continue;
-        addCFPractice(handle, data);
+        try {
+            /** @type {CodeForcesPractice} */
+            const data = await codeforcesDB.get(codeforcesKey(handle));
+            if (!data) continue;
+            addCFPractice(handle, data);
+        } catch (err) {
+            error(err);
+        }
     }
     for (const handle of atHandles) {
-        /** @type {AtCoderPractice} */
-        const data = await atcoderDB.get(atcoderKey(handle));
-        if (!data) continue;
-        addATPractice(handle, data);
+        try {
+            /** @type {AtCoderPractice} */
+            const data = await atcoderDB.get(atcoderKey(handle));
+            if (!data) continue;
+            addATPractice(handle, data);
+        } catch (err) {
+            error(err);
+        }
     }
 }
 
