@@ -98,8 +98,10 @@ function DropBox() {
                 nxtRef.current = null;
             }
         }, { signal: abort.signal });
+        const unload = subscribe("route", () => hideAll());
         return () => {
             abort.abort();
+            unload();
         };
     }, [show, hide, hideAll]);
     useLayoutEffect(() => {
