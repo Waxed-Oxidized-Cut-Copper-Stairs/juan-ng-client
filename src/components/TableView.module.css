@@ -9,6 +9,7 @@
     position: sticky;
     left: 0px;
     border-right: 2px solid var(--fog);
+    box-shadow: 4px 0 3px -3px var(--shadow);
 }
 
 .header {
