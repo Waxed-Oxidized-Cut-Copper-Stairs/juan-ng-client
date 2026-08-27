@@ -154,7 +154,7 @@ export default function TableView({ users, problems }) {
         }
         setOrder(users.slice().sort((a, b) => val.get(b.luogu) - val.get(a.luogu)));
         setCount(val);
-    }, [prob, profiles]);
+    }, [prob, profiles, users]);
     useEffect(() => {
         update();
         updateProfile();
