@@ -1,5 +1,22 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
+.anchor {
+    transition: filter 0.1s ease-in-out;
+    text-decoration: none;
+}
+
+.anchor:not(.light) {
+    font-weight: bold;
+}
+
+.anchor:hover {
+    filter: brightness(0.75);
+}
+
+.anchor:active {
+    filter: brightness(0.5);
+}
+
 .button {
     color: var(--text-color);
     background-color: var(--background);

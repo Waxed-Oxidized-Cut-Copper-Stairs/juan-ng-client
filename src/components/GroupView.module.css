@@ -83,17 +83,3 @@
     font-weight: bold;
     font-variant: small-caps;
 }
-
-.anchor {
-    transition: filter 0.1s ease-in-out;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-.anchor:hover {
-    filter: brightness(0.75);
-}
-
-.anchor:active {
-    filter: brightness(0.5);
-}

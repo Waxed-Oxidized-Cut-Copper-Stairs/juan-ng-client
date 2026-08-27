@@ -3,7 +3,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { flushCache } from "./protocol_v2.js";
-import { Button } from "./components/Generic";
+import { Anchor, Button, LightAnchor } from "./components/Generic";
 import styles from "./popup.module.css";
 
 const versionName = `${__JUAN_VERSION__} (${__COMMIT_HASH__})`;
@@ -32,9 +32,9 @@ export default function Popup() {
                     <br />
                     数据来源：
                     <ul>
-                        <li><a href="https://www.luogu.com.cn/" target="_blank">洛谷（直接爬取）</a></li>
-                        <li><a href="https://codeforces.com/apiHelp" target="_blank">CodeForces API</a></li>
-                        <li><a href="https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md" target="_blank">AtCoder Problems（第三方 API）</a></li>
+                        <li><LightAnchor href="https://www.luogu.com.cn/">洛谷（直接爬取）</LightAnchor></li>
+                        <li><LightAnchor href="https://codeforces.com/apiHelp">CodeForces API</LightAnchor></li>
+                        <li><LightAnchor href="https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md">AtCoder Problems（第三方 API）</LightAnchor></li>
                     </ul>
                 </div>
             </main>
@@ -43,9 +43,9 @@ export default function Popup() {
                 <br />
                 不含任何担保
                 <br />
-                详见 <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GNU General Public License, version 3 or later</a>
+                详见 <Anchor href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General Public License, version 3 or later</Anchor>
                 <br />
-                遇到问题，请汇报到 <a href="mailto:bluewindde@163.com" target="_blank">mailto:bluewindde@163.com</a>
+                遇到问题，请汇报到 <Anchor href="mailto:bluewindde@163.com">mailto:bluewindde@163.com</Anchor>
             </footer>
         </>
     )

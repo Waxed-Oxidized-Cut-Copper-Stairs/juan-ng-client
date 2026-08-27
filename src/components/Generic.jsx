@@ -79,6 +79,12 @@ export function ShadowRoot({ children }) {
     );
 }
 
+export function Anchor({ children, href, ...rest }) {
+    return <a className={styles.anchor} href={href} target="_blank" {...rest}>{children}</a>
+}
+export function LightAnchor({ children, href, ...rest }) {
+    return <a className={`${styles.anchor} ${styles.light}`} href={href} target="_blank" {...rest}>{children}</a>
+}
 export function Button({ children, onClick, confirm = null, ...rest }) {
     return <button
         className={styles.button}

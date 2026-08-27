@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useState } from "react";
-import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, percentToColor, percentToString, Username } from "./Generic";
+import AnimatedView, { Anchor, Button, FloatDiv, FloatDivBinding, FloatDivContainer, percentToColor, percentToString, Username } from "./Generic";
 import styles from "./GroupView.module.css";
 
 import { acquireProblem, acquireUserProfile, flushSpecificCache, subscribe } from "../protocol_v2";
@@ -32,10 +32,10 @@ export function QuickView({ ac, wa, na, tot, visible }) {
 export function SingleView({ account, pid, state }) {
     return (
         <div className={styles.singleview}>
-            <a className={styles.anchor} href={`https://www.luogu.com.cn/record/list?pid=${pid}&user=${account.luogu}`} target="_blank">
+            <Anchor href={`https://www.luogu.com.cn/record/list?pid=${pid}&user=${account.luogu}`}>
                 <Username account={account} className={state == 1 ? styles.ac : styles.wa} />
-            </a>
-        </div>
+            </Anchor>
+        </div >
     )
 }
 
