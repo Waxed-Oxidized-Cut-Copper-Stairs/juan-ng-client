@@ -82,6 +82,7 @@ export default function TableView({ users, problems }) {
     const [profiles, setProfiles] = useState(new Map());
     const [order, setOrder] = useState([]);
     const [count, setCount] = useState(new Map());
+    const mountedRef = useRef(null);
     const headerRef = useRef(null);
     const headerBakRef = useRef(null);
     const maskRef = useRef(null);
@@ -107,7 +108,7 @@ export default function TableView({ users, problems }) {
             }));
         }
         await Promise.allSettled(promises);
-        setProb(newProb);
+        if (mountedRef.current) setProb(newProb);
     }, [problems]);
     const updateProfile = useCallback(async () => {
         const newProfiles = new Map();
@@ -120,7 +121,7 @@ export default function TableView({ users, problems }) {
             }));
         }
         await Promise.allSettled(promises);
-        setProfiles(newProfiles);
+        if (mountedRef.current) setProfiles(newProfiles);
     }, [users]);
     const updateScroll = useCallback(() => {
         /** @type {HTMLDivElement} */
@@ -172,7 +173,7 @@ export default function TableView({ users, problems }) {
         };
     }, [users, problems, update, updateScroll]);
     return (
-        <div>
+        <div ref={mountedRef}>
             <div className={styles.table}>
                 <TitleView users={order} profiles={profiles} count={count} />
                 <div ref={bodyRef} className={styles.body} onScroll={() => updateScroll()}>
