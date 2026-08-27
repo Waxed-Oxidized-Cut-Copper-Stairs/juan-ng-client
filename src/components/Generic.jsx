@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Generic.module.css";
-import { acquireUserProfile } from "../protocol_v2";
+import { acquireUserProfile, subscribe } from "../protocol_v2";
 
 /**
  * @param {number} p
@@ -171,12 +171,17 @@ export function ComboBox({ items, selected, setSelected }) {
 export function Username({ account, ...rest }) {
     const [username, setUsername] = useState();
     const uid = account.luogu;
+    const update = useCallback(async () => {
+        const profile = await acquireUserProfile(uid);
+        if (!profile) return;
+        setUsername(profile.name);
+    }, [uid]);
     useEffect(() => {
-        (async () => {
-            const profile = await acquireUserProfile(uid);
-            if (!profile) return;
-            setUsername(profile.name);
-        })();
+        update();
+        const unload = subscribe("profile-<uid>", () => update());
+        return () => {
+            unload();
+        }
     }, []);
     return (
         <span {...rest}>{username ?? `UID ${account.luogu}`}</span>

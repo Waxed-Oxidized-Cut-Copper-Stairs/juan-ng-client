@@ -102,9 +102,10 @@ const subscription = new Map();
 /**
  * 订阅一个事件，当事件触发时调用回调函数
  * problem, progress: 题目数据变化时由 offscreen 触发，目前实现为一起触发
+ * profile, profile-<uid>: 用户洛谷账户信息改变时由 offscreen 触发，可以使用 <uid> 指定特定账户信息改变时才触发
  * route: 当前页面导航时由 service worker 触发，无论页面是否处于 active 状态
  * outdate: protocol 发现当前页面扩展状态过期时触发
- * @param {"problem" | "progress" | "route" | "outdate"} type
+ * @param {"problem" | "progress" | "profile" | "profile-<uid>" | "route" | "outdate"} type
  * @param {(data: any) => void} callback
  */
 export function subscribe(type, callback) {
@@ -116,9 +117,16 @@ export function subscribe(type, callback) {
         if (!set.size) subscription.delete(type);
     }
 }
-/** @param {"problem" | "progress" | "route" | "outdate"} type */
+/** @param {"problem" | "progress" | "profile" | "route" | "outdate"} type */
 function emit(type, data) {
     if (!subscription.has(type)) return;
+    if (type === "profile") {
+        for (const uid of data) {
+            for (const callback of subscription.get(`profile-${uid}`)) {
+                callback(uid);
+            }
+        }
+    }
     for (const callback of subscription.get(type)) {
         callback(data);
     }
@@ -132,6 +140,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "progress":
             emit("progress", data);
+            break;
+        case "profile":
+            emit("profile", data);
             break;
         case "route":
             emit("route", data);

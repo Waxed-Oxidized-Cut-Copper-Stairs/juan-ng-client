@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer } from "./Generic";
+import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, Username } from "./Generic";
 import styles from "./TableView.module.css";
 import { acquireProblem, acquireUserProfile, subscribe } from "../protocol_v2";
 
@@ -41,7 +41,9 @@ function TitleView({ users, profiles, count }) {
             {users.map((account) => {
                 return (
                     <div key={account.luogu} className={`${styles.title_cell} ${profiles.get(account.luogu)?.privacy ? styles.privacy : ""}`.trim()}>
-                        <div className={styles.title_cell_left}>{profiles.get(account.luogu)?.name ?? `UID ${account.luogu}`}</div>
+                        <div className={styles.title_cell_left}>
+                            <Username account={account} />
+                        </div>
                         <div className={styles.title_cell_right}>{count.get(account.luogu) ?? -1}</div>
                     </div>
                 )
@@ -87,7 +89,6 @@ export default function TableView({ users, problems }) {
     const [headerBakVisible, setHeaderBakVisible] = useState(false);
     const update = useCallback(async () => {
         const newProb = [];
-        const newProfiles = new Map();
         const promises = [];
         for (const problem of problems) {
             const idx = newProb.length;
@@ -105,6 +106,12 @@ export default function TableView({ users, problems }) {
                 }
             }));
         }
+        await Promise.allSettled(promises);
+        setProb(newProb);
+    }, [problems]);
+    const updateProfile = useCallback(async () => {
+        const newProfiles = new Map();
+        const promises = [];
         for (const account of users) {
             const uid = account.luogu;
             promises.push(acquireUserProfile(uid).then((profile) => {
@@ -113,9 +120,8 @@ export default function TableView({ users, problems }) {
             }));
         }
         await Promise.allSettled(promises);
-        setProb(newProb);
         setProfiles(newProfiles);
-    }, [users, problems]);
+    }, [users]);
     const updateScroll = useCallback(() => {
         /** @type {HTMLDivElement} */
         const div = headerRef.current;
@@ -151,15 +157,18 @@ export default function TableView({ users, problems }) {
     }, [prob, profiles]);
     useEffect(() => {
         update();
+        updateProfile();
         updateScroll();
         const abort = new AbortController();
         document.addEventListener("scroll", () => {
             updateScroll();
         }, { signal: abort.signal });
         const unload = subscribe("problem", () => update());
+        const unload2 = subscribe("profile", () => updateProfile());
         return () => {
             abort.abort();
             unload();
+            unload2();
         };
     }, [users, problems, update, updateScroll]);
     return (

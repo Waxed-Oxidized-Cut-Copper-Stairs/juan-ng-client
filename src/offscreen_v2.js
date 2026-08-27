@@ -119,8 +119,8 @@ function atcoderDuration(handle) {
     return DURATION_AT_EASY;
 }
 
-/** @type {Object<number, LuoguProfileNew>} */
-let profiles = {};
+/** @type {Map<number, LuoguProfileNew>} */
+const profiles = new Map();
 
 class PidToUid {
     constructor() {
@@ -172,7 +172,11 @@ function addLGPractice(uid, practice) {
     const { passed, submitted, name, privacy } = practice;
     for (const prob of submitted) addSubmitted(prob.pid, uid);
     for (const prob of passed) addPassed(prob.pid, uid);
-    profiles[uid] = { name, privacy };
+    const old = profiles.get(uid);
+    if (!profiles.has(uid) || old.name !== name || old.privacy !== privacy) {
+        profiles.set(uid, { name, privacy });
+        send("route-to-active-tabs", { type: "profile", data: [uid] });
+    }
 }
 /**
  * @param {string} handle
@@ -633,7 +637,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             break;
         case "query-profile":
-            sendResponse(profiles[data]);
+            sendResponse(profiles.get(data));
             break;
         case "query-progress":
             sendResponse({ done: lasLgDone + lasCfDone + lasAtDone, total: lgUIDs.length + cfHandles.length + atHandles.length });

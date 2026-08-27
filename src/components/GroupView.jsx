@@ -194,7 +194,7 @@ export function GroupView({ groups, pid, children, verbose }) {
         const abort = new AbortController();
         document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
         const unload1 = subscribe("problem", () => update());
-        const unload2 = subscribe("progress", () => updateProfile());
+        const unload2 = subscribe("profile", () => updateProfile());
         return () => {
             abort.abort();
             unload1();
