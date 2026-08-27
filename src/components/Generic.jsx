@@ -178,11 +178,11 @@ export function Username({ account, ...rest }) {
     }, [uid]);
     useEffect(() => {
         update();
-        const unload = subscribe("profile-<uid>", () => update());
+        const unload = subscribe(`profile-${uid}`, () => update());
         return () => {
             unload();
         }
-    }, []);
+    }, [uid]);
     return (
         <span {...rest}>{username ?? `UID ${account.luogu}`}</span>
     )
