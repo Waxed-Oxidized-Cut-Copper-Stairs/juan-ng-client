@@ -37,6 +37,7 @@ function DropBox() {
     const [pid, setPid] = useState(null);
     const [visible, setVisible] = useState(false);
     const [current, setCurrent] = useState(null);
+    const currentRef = useRef(null);
     const dropboxRef = useRef(null);
     const nxtRef = useRef(null);
     const nxtPidRef = useRef(null);
@@ -46,6 +47,7 @@ function DropBox() {
         setVisible(true);
         setCurrent(nxtRef.current);
         setPid(nxtPidRef.current);
+        currentRef.current = nxtRef.current;
         nxtRef.current = null;
         nxtPidRef.current = null;
     }, []);
@@ -53,19 +55,20 @@ function DropBox() {
         if (!hideRef.current) return;
         setVisible(false);
         setCurrent(null);
+        currentRef.current = null;
         hideRef.current = false;
         if (nxtRef.current !== null) {
             showNow();
         }
     }, [showNow]);
     const show = useCallback((node, newPid) => {
-        if (current === node) return;
+        if (currentRef.current === node) return;
         nxtRef.current = node;
         nxtPidRef.current = newPid;
         setTimeout(() => {
             showNow();
         }, 150);
-    }, [current, showNow]);
+    }, [showNow]);
     const hide = useCallback(() => {
         hideRef.current = true;
         setTimeout(() => {
@@ -75,6 +78,7 @@ function DropBox() {
     const hideAll = useCallback(() => {
         setVisible(false);
         setCurrent(null);
+        currentRef.current = null;
         nxtRef.current = null;
         nxtPidRef.current = null;
         hideRef.current = false;
@@ -90,7 +94,7 @@ function DropBox() {
             }
         }, { signal });
         node.addEventListener("mouseleave", () => {
-            if (current === node) hide();
+            if (currentRef.current === node) hide();
             if (nxtRef.current === node) {
                 nxtRef.current = null;
                 nxtPidRef.current = null;
@@ -99,7 +103,7 @@ function DropBox() {
         return () => {
             node.removeAttribute("juan-watching");
         };
-    }, [current, show, hide]);
+    }, [show, hide]);
     useEffect(() => {
         const abort = new AbortController();
         document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
