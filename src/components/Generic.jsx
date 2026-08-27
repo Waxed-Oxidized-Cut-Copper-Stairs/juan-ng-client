@@ -101,67 +101,17 @@ export function LineEdit({ onChange }) {
  * @param {any} [options.setSelected]
  */
 export function ComboBox({ items, selected, setSelected }) {
-    const [open, setOpen] = useState(false);
-    const [top, setTop] = useState(0);
-    const [left, setLeft] = useState(0);
-    const containerRef = useRef(null);
-    const targetRef = useRef(null);
-    const popupRef = useRef(null);
-    useLayoutEffect(() => {
-        if (open && targetRef.current && popupRef.current) {
-            requestAnimationFrame(() => {
-                /** @type {DOMRect} */
-                const rect = targetRef.current.getBoundingClientRect();
-                setTop(rect.bottom + 5);
-                setLeft((rect.left + rect.right - popupRef.current.offsetWidth) / 2);
-            });
-        }
-    }, [open]);
-    useEffect(() => {
-        if (open) {
-            const abort = new AbortController();
-            document.addEventListener("mousedown", (e) => {
-                const path = e.composedPath();
-                if (!containerRef.current || !path.includes(containerRef.current)) {
-                    setOpen(false);
-                }
-            }, { signal: abort.signal });
-            return () => {
-                abort.abort();
-            }
-        }
-    }, [open]);
+    const onChange = useCallback((e) => {
+        const val = items.find(item => item[0] === Number(e.target.value));
+        if (val) setSelected(val);
+    }, []);
     return (
-        <div className={styles.combobox} ref={containerRef}>
-            <div
-                ref={targetRef}
-                className={styles.combobox_body}
-                onClick={() => {
-                    if (open) setOpen(false);
-                    else setOpen(true);
-                }}
-            >{selected[1]}</div>
-            <FadeAnimation visible={open} jumpin={true}>
-                <div
-                    ref={popupRef}
-                    className={styles.combobox_popup}
-                    style={{
-                        left: `${left}px`,
-                        top: `${top}px`
-                    }}
-                >
-                    {items.map((val) => {
-                        return (
-                            <div key={val[0]} className={styles.combobox_item} onClick={() => {
-                                setSelected(val);
-                                setOpen(false);
-                            }}>{val[1]}</div>
-                        )
-                    })}
-                </div>
-            </FadeAnimation>
-        </div>
-    )
+        <select value={selected[0]} onChange={e => onChange(e)}>
+            {items.map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+            ))}
+        </select>
+    );
 }
 
 /**

@@ -28,51 +28,6 @@
 
 .lineedit {}
 
-.combobox {
-    display: inline-block;
-    vertical-align: middle;
-    width: 240px;
-    user-select: none;
-}
-
-.combobox_body {
-    background-color: var(--background);
-    box-sizing: border-box;
-    border: 1px solid var(--fog);
-    border-radius: 4px;
-    padding: 0 8px;
-    width: 240px;
-    height: 30px;
-    line-height: 28px;
-    overflow: auto;
-    cursor: pointer;
-}
-
-.combobox_popup {
-    background-color: var(--background);
-    box-shadow: 0 1px 3px var(--shadow);
-    box-sizing: border-box;
-    border: 1px solid var(--fog);
-    border-radius: 4px;
-    position: fixed;
-    width: 240px;
-    overflow: auto;
-    z-index: 800;
-}
-
-.combobox_item {
-    padding: 0 8px;
-    cursor: pointer;
-}
-
-.combobox_item:hover {
-    filter: var(--filter-lv1);
-}
-
-.combobox_item:active {
-    filter: var(--filter-lv2);
-}
-
 .fade {
     transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
 }
