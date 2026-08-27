@@ -192,7 +192,7 @@ export function GroupView({ groups, pid, children, verbose }) {
     }
     useEffect(() => {
         const abort = new AbortController();
-        document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
+        document.addEventListener("visibilitychange", () => { update(); updateProfile(); }, { signal: abort.signal });
         const unload1 = subscribe("problem", () => update());
         const unload2 = subscribe("profile", () => updateProfile());
         return () => {

@@ -165,6 +165,11 @@ export default function TableView({ users, problems }) {
         updateProfile();
         updateScroll();
         const abort = new AbortController();
+        document.addEventListener("visibilitychange", () => {
+            update();
+            updateProfile();
+            updateScroll();
+        }, { signal: abort.signal });
         document.addEventListener("scroll", () => {
             updateScroll();
         }, { signal: abort.signal });

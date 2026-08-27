@@ -133,9 +133,12 @@ export function Username({ account, ...rest }) {
         setUsername(profile.name);
     }, [uid]);
     useEffect(() => {
+        const abort = new AbortController();
         update();
+        document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
         const unload = subscribe(`profile-${uid}`, () => update());
         return () => {
+            abort.abort();
             unload();
         }
     }, [uid]);
@@ -177,9 +180,12 @@ export function OriginAnchor({ children, account, pid }) {
         }
     }, [uid, pid]);
     useEffect(() => {
+        const abort = new AbortController();
         update();
+        document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
         const unload = subscribe(`problem`, () => update());
         return () => {
+            abort.abort();
             unload();
         }
     }, [uid, pid]);
