@@ -395,6 +395,9 @@ function createMouseStore() {
         },
     };
 }
+/**
+ * 注意：steady 应当为定值
+ */
 export function FloatDivContainer({ children, holdFloat = true, steady = true }) {
     const [visible, setVisible] = useState(false);
     const targetRef = useRef(null);
