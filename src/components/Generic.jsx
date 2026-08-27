@@ -157,7 +157,7 @@ export function OriginAnchor({ children, account, pid }) {
         let ori;
         if (origin.passed.has(uid)) ori = origin.passed.get(uid);
         else if (origin.submitted.has(uid)) ori = origin.submitted.get(uid);
-        else return;
+        if (!ori) return;
         const [src, handle] = ori;
         if (src == "lg") {
             setUrl(`https://www.luogu.com.cn/record/list?pid=${pid}&user=${handle}`);

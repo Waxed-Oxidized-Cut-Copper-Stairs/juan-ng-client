@@ -6,7 +6,7 @@ protocol_v2.js
 前端与 Service Worker 通信的模块。
 */
 
-import { sleep } from "./lib/asyncio.js";
+import { Lock, sleep } from "./lib/asyncio.js";
 import { error } from "../public/lib/core.js";
 
 export function ping() {
@@ -39,24 +39,37 @@ async function timeoutWrapper(promise, timeout = 3000) {
 }
 
 /**
- * @param {string} pid 
+ * @param {string} pid
  * @returns {Promise<{ passed: number[], submitted: number[] }>}
  */
 async function acquireProblem(pid) {
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-pid", data: pid })));
 }
 
+const originLock = new Lock();
+/** @type {Map<string, { passed: Map<number, [string, string | number]>, submitted: Map<number, [string, string | number]> }>} */
+const cachedOrigins = new Map();
 /**
- * @param {string} pid 
+ * @param {string} pid
+ * @param {boolean} [force=false]
  * @returns {Promise<{ passed: Map<number, [string, string | number]>, submitted: Map<number, [string, string | number]> }>}
  */
-async function acquireOrigin(pid) {
-    return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-origin", data: pid }))).then(ret => {
-        return {
-            passed: new Map(ret.passed),
-            submitted: new Map(ret.submitted)
-        };
-    });
+async function acquireOrigin(pid, force = false) {
+    if (!force && cachedOrigins.has(pid)) return cachedOrigins.get(pid);
+    await originLock.acquire();
+    try {
+        if (!force && cachedOrigins.has(pid)) return cachedOrigins.get(pid);
+        return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-origin", data: pid }))).then(ret => {
+            const dt = {
+                passed: new Map(ret.passed),
+                submitted: new Map(ret.submitted)
+            };
+            cachedOrigins.set(pid, dt);
+            return dt;
+        });
+    } finally {
+        originLock.release();
+    }
 }
 
 /** @type {Map<number, LuoguProfileNew>} */
@@ -148,6 +161,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { type, data } = message;
     switch (type) {
         case "configured":
+            cachedOrigins.clear();
             emit("problem", data);
             break;
         case "progress":
