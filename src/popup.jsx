@@ -19,7 +19,7 @@ export default function Popup() {
             <main className={styles.main}>
                 <div className={styles.operation}>
                     <div>
-                        如果遇到重大故障或数据库混乱，刷新缓存无法恢复的，请尝试：在浏览器扩展管理页面，检查扩展视图，选择 Application 页签的 IndexDB 选项，删除其下的三个数据库。
+                        如果遇到重大故障或数据库混乱，刷新缓存无法恢复的，请尝试：在浏览器扩展管理页面，检查扩展视图，选择 Application 页签的 IndexDB 选项，删除其下的三个数据库，然后重启扩展。
                     </div>
                     <div>
                         <Button onClick={() => { flushCache(); }} confirm="此操作将刷新所有缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新所有缓存</Button>
