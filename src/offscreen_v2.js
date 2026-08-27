@@ -182,12 +182,10 @@ function addCFPractice(handle, practice) {
     const { passed, submitted } = practice;
     const uid = parseCFUid(handle);
     for (const prob of submitted) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addSubmitted(p, uid);
+        addSubmitted(parseCodeforcesProblem(prob), uid);
     }
     for (const prob of passed) {
-        const p = parseCodeforcesProblem(prob);
-        if (p) addPassed(p, uid);
+        addPassed(parseCodeforcesProblem(prob), uid);
     }
 }
 /**
@@ -391,8 +389,8 @@ async function crawlCodeforces(handle, duration = null) {
         }
         /** @type {CodeForcesPractice} */
         const ret = {
-            passed: Array.from(passed),
-            submitted: Array.from(submitted),
+            passed: Array.from(passed.values()),
+            submitted: Array.from(submitted.values()),
             lastUpdate
         };
         addCFPractice(handle, ret);
