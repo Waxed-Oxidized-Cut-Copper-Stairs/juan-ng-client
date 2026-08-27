@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useState } from "react";
-import AnimatedView, { Anchor, Button, FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, percentToColor, percentToString, Username } from "./Generic";
+import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, percentToColor, percentToString, Username } from "./Generic";
 import styles from "./GroupView.module.css";
 
 import { acquireProblem, acquireUserProfile, flushSpecificCache, subscribe } from "../protocol_v2";

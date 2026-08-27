@@ -140,7 +140,7 @@ export function Username({ account, ...rest }) {
         }
     }, [uid]);
     return (
-        <span {...rest}>{username ?? `UID ${account.luogu}`}</span>
+        <span {...rest}>{username ?? `uid:${account.luogu}`}{account.star > 0 && "🌟"}</span>
     )
 }
 /**

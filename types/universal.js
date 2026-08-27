@@ -5,7 +5,8 @@
  *   luogu: number,
  *   cf?: string | string[],
  *   at?: string | string[],
- *   pri?: number
+ *   pri?: number,
+ *   star?: boolean
  * }} Account
  * @typedef {{name: string, accounts: Account[]}} Group
  * @typedef {"lg" | "cf" | "at"} Domain
