@@ -40,48 +40,39 @@ function DropBox() {
     const currentRef = useRef(null);
     const dropboxRef = useRef(null);
     const nxtRef = useRef(null);
-    const nxtPidRef = useRef(null);
     const hideRef = useRef(false);
-    const showNow = useCallback(() => {
-        if (nxtRef.current === null) return;
-        setVisible(true);
-        setCurrent(nxtRef.current);
-        setPid(nxtPidRef.current);
-        currentRef.current = nxtRef.current;
-        nxtRef.current = null;
-        nxtPidRef.current = null;
-    }, []);
-    const hideNow = useCallback(() => {
-        if (!hideRef.current) return;
-        setVisible(false);
-        setCurrent(null);
-        currentRef.current = null;
-        hideRef.current = false;
-        if (nxtRef.current !== null) {
-            showNow();
-        }
-    }, [showNow]);
     const show = useCallback((node, newPid) => {
-        if (currentRef.current === node) return;
         nxtRef.current = node;
-        nxtPidRef.current = newPid;
         setTimeout(() => {
-            showNow();
+            if (currentRef.current === node) return;
+            if (nxtRef.current !== node) return;
+            setVisible(true);
+            setCurrent(nxtRef.current);
+            setPid(newPid);
+            currentRef.current = nxtRef.current;
+            nxtRef.current = null;
         }, 150);
-    }, [showNow]);
-    const hide = useCallback(() => {
-        hideRef.current = true;
+    }, []);
+    const hide = useCallback((node) => {
+        hideRef.current = node;
         setTimeout(() => {
-            hideNow();
+            if (currentRef.current !== node) return;
+            if (hideRef.current !== node) return;
+            setVisible(false);
+            setCurrent(null);
+            currentRef.current = null;
+            hideRef.current = null;
         }, 150);
-    }, [hideNow]);
+    }, []);
     const hideAll = useCallback(() => {
         setVisible(false);
         setCurrent(null);
         currentRef.current = null;
         nxtRef.current = null;
-        nxtPidRef.current = null;
-        hideRef.current = false;
+        hideRef.current = null;
+    }, []);
+    const calcPosition = useCallback(() => {
+        ;
     }, []);
     useEffect(() => {
         const abort = new AbortController();
@@ -102,10 +93,9 @@ function DropBox() {
             const node = e.target?.closest("a[href]");
             if (!node) return;
             if (node === e.relatedTarget || node.contains(e.relatedTarget)) return;
-            if (currentRef.current === node) hide();
+            if (currentRef.current === node) hide(node);
             if (nxtRef.current === node) {
                 nxtRef.current = null;
-                nxtPidRef.current = null;
             }
         }, { signal: abort.signal });
         return () => {
@@ -123,50 +113,60 @@ function DropBox() {
                 : url.pathname.startsWith("/problem/list")
                     ? "problem-list"
                     : null;
-        const rect = node.getBoundingClientRect();
-        const spaceRight = window.innerWidth - rect.right;
-        /** @type {HTMLElement} */
-        const box = dropboxRef.current;
-        let anchor;
-        let top, left;
-        if (spaceRight < 200) {
-            anchor = "bottom";
-            top = rect.bottom + 5;
-            left = rect.left;
-        } else {
-            anchor = "right";
-            top = (rect.top + rect.bottom) / 2;
-            left = rect.right + 5;
-            if (type === "practice" || type === "article") {
-                const contentNode =
-                    type === "practice"
-                        ? document.querySelector("div.sidebar-container.reverse div.main")
-                        : document.querySelector(
-                            "div.article-content.columba-content-wrap.wrapper div.lfe-marked-wrap"
-                        );
-                if (contentNode) {
-                    const rec = contentNode.getBoundingClientRect();
-                    const right = rec.left + contentNode.clientWidth;
-                    if (right + 400 < window.innerWidth) {
-                        left = right + 10;
+        const solvePosition = () => {
+            const rect = node.getBoundingClientRect();
+            const spaceRight = window.innerWidth - rect.right;
+            /** @type {HTMLElement} */
+            const box = dropboxRef.current;
+            let anchor;
+            let top, left;
+            if (spaceRight < 200) {
+                anchor = "bottom";
+                top = rect.bottom + 5;
+                left = rect.left;
+            } else {
+                anchor = "right";
+                top = (rect.top + rect.bottom) / 2;
+                left = rect.right + 5;
+                if (type === "practice" || type === "article") {
+                    const contentNode =
+                        type === "practice"
+                            ? document.querySelector("div.sidebar-container.reverse div.main")
+                            : document.querySelector(
+                                "div.article-content.columba-content-wrap.wrapper div.lfe-marked-wrap"
+                            );
+                    if (contentNode) {
+                        const rec = contentNode.getBoundingClientRect();
+                        const right = rec.left + contentNode.clientWidth;
+                        if (right + 400 < window.innerWidth) {
+                            left = right + 10;
+                        }
                     }
                 }
             }
-        }
-        box.style.top = `${top}px`;
-        box.style.left = `${left}px`;
-        void box.offsetWidth;
-        if (anchor == "right") top -= 0.37 * box.offsetHeight;
-        box.style.top = `${top}px`;
-        box.style.left = `${left}px`;
-        void box.offsetWidth;
-        const coord = clampCoord(anchor, left, top, box.offsetWidth, box.offsetHeight, 0, 0, window.innerWidth, window.innerHeight);
-        if (coord) {
-            top = coord.top;
-            left = coord.left;
-        }
-        box.style.top = `${top}px`;
-        box.style.left = `${left}px`;
+            box.style.top = `${top}px`;
+            box.style.left = `${left}px`;
+            void box.offsetWidth;
+            if (anchor == "right") top -= 0.37 * box.offsetHeight;
+            box.style.top = `${top}px`;
+            box.style.left = `${left}px`;
+            void box.offsetWidth;
+            const coord = clampCoord(anchor, left, top, box.offsetWidth, box.offsetHeight, 0, 0, window.innerWidth, window.innerHeight);
+            if (coord) {
+                top = coord.top;
+                left = coord.left;
+            }
+            box.style.top = `${top}px`;
+            box.style.left = `${left}px`;
+        };
+        solvePosition();
+        const observer = new ResizeObserver(() => {
+            requestAnimationFrame(solvePosition);
+        });
+        observer.observe(dropboxRef.current);
+        return () => {
+            observer.disconnect();
+        };
     }, [visible, current]);
     return (
         <ShadowRoot>
@@ -183,7 +183,7 @@ function DropBox() {
                     <div
                         className={styles.xdropbox}
                         onMouseEnter={() => { hideRef.current = false; }}
-                        onMouseLeave={() => hide()}
+                        onMouseLeave={() => hide(currentRef.current)}
                     >
                         <GroupView groups={users} pid={pid}>
                             <h3 className={styles.xh3}>{pid} 的通过情况</h3>
