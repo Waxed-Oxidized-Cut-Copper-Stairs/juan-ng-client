@@ -83,59 +83,35 @@ function DropBox() {
         nxtPidRef.current = null;
         hideRef.current = false;
     }, []);
-    const handleNode = useCallback((node, signal) => {
-        if (node.hasAttribute("juan-watching")) return;
-        node.setAttribute("juan-watching", "");
-        node.addEventListener("mouseenter", () => {
-            if (!node.href) return;
+    useEffect(() => {
+        const abort = new AbortController();
+        document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
+        const app = document.getElementById("app") ?? document.documentElement;
+        app.addEventListener("mouseover", (e) => {
+            /** @type {HTMLAnchorElement | null} */
+            const node = e.target?.closest("a[href]");
+            if (!node) return;
+            if (node === e.relatedTarget || node.contains(e.relatedTarget)) return;
             const newPid = getPid(new URL(node.href));
             if (newPid && (!newPid.startsWith("U") || newPid.startsWith("UVA")) && !newPid.startsWith("T")) {
                 show(node, newPid);
             }
-        }, { signal });
-        node.addEventListener("mouseleave", () => {
+        }, { signal: abort.signal });
+        app.addEventListener("mouseout", (e) => {
+            /** @type {HTMLAnchorElement | null} */
+            const node = e.target?.closest("a[href]");
+            if (!node) return;
+            if (node === e.relatedTarget || node.contains(e.relatedTarget)) return;
             if (currentRef.current === node) hide();
             if (nxtRef.current === node) {
                 nxtRef.current = null;
                 nxtPidRef.current = null;
             }
-        }, { signal });
-        return () => {
-            node.removeAttribute("juan-watching");
-        };
-    }, [show, hide]);
-    useEffect(() => {
-        const abort = new AbortController();
-        document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
-        const unloads = [];
-        const observer = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeName === "A") {
-                        const fn = handleNode(node, abort.signal);
-                        if (fn) unloads.push(fn);
-                    } else if (node.nodeType === Node.ELEMENT_NODE) {
-                        node.querySelectorAll("a")
-                            .forEach((child) => {
-                                const fn = handleNode(child, abort.signal);
-                                if (fn) unloads.push(fn);
-                            });
-                    }
-                }
-            }
-        });
-        const app = document.getElementById("app") ?? document.documentElement;
-        observer.observe(app, { subtree: true, childList: true });
-        app.querySelectorAll("a").forEach((node) => {
-            const fn = handleNode(node, abort.signal);
-            if (fn) unloads.push(fn);
-        });
+        }, { signal: abort.signal });
         return () => {
             abort.abort();
-            observer.disconnect();
-            for (const fn of unloads) fn();
         };
-    }, [hideAll, handleNode]);
+    }, [show, hide, hideAll]);
     useLayoutEffect(() => {
         if (!visible || !dropboxRef.current || !current) return;
         const node = current;
