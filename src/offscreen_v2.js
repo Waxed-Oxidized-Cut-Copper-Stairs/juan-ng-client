@@ -252,19 +252,27 @@ async function fetchAPI(url, key = null, db = null) {
     try {
         resp = await fetch(url);
     } catch (err) {
-        send("notify", { title: "联考水表机 后端错误", msg: `请求 ${url} 出现错误 ${err}` });
-        error(err, `请求 ${url} 时出现此错误`);
-        if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
+        try {
+            send("notify", { title: "联考水表机 后端错误", msg: `请求 ${url} 出现错误 ${err}` });
+            error(err, `请求 ${url} 时出现此错误`);
+            if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
+        } catch (err) {
+            console.error("fetchAPI 错误处理中出错", err);
+        }
         return;
     }
     if (!resp.ok) {
-        error(`请求 ${url} 返回 ${resp.status} ${resp.statusText}`);
-        if (400 <= resp.status && resp.status < 500) {
-            if (key && db) await db.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
-        } else if (500 <= resp.status && resp.status < 600) {
-            if (key && db) await db.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
-        } else {
-            if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
+        try {
+            error(`请求 ${url} 返回 ${resp.status} ${resp.statusText}`);
+            if (400 <= resp.status && resp.status < 500) {
+                if (key && db) await db.setExpiration(key, Date.now() + CLIENT_ERROR_GAP);
+            } else if (500 <= resp.status && resp.status < 600) {
+                if (key && db) await db.setExpiration(key, Date.now() + SERVER_ERROR_GAP);
+            } else {
+                if (key && db) await db.setExpiration(key, Date.now() + FETCH_ERROR_GAP);
+            }
+        } catch (err) {
+            console.error("fetchAPI HTTP 状态码处理中出错", err);
         }
         return;
     }
