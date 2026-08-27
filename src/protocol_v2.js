@@ -39,9 +39,8 @@ async function timeoutWrapper(promise, timeout = 3000) {
 }
 
 /**
- * 返回的第一个是提交但未通过的选手，第二个是通过的选手
  * @param {string} pid 
- * @returns {Promise<{ passed: number[], submitted: number[] } | null>}
+ * @returns {Promise<{ passed: number[], submitted: number[] }>}
  */
 async function acquireProblem(pid) {
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-pid", data: pid })));
