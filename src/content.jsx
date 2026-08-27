@@ -71,9 +71,6 @@ function DropBox() {
         nxtRef.current = null;
         hideRef.current = null;
     }, []);
-    const calcPosition = useCallback(() => {
-        ;
-    }, []);
     useEffect(() => {
         const abort = new AbortController();
         document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
