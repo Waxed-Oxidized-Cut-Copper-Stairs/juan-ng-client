@@ -147,12 +147,12 @@ function emit(type, data) {
     if (!subscription.has(type)) return;
     if (type === "profile") {
         for (const uid of data) {
-            for (const callback of subscription.get(`profile-${uid}`)) {
+            for (const callback of (subscription.get(`profile-${uid}`) ?? [])) {
                 callback(uid);
             }
         }
     }
-    for (const callback of subscription.get(type)) {
+    for (const callback of (subscription.get(type) ?? [])) {
         callback(data);
     }
 }
