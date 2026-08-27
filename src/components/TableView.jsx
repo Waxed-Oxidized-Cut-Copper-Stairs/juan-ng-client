@@ -62,12 +62,14 @@ function RowView({ account, problems }) {
         <div>
             {problems.map(({ problem, situation }) => {
                 return (
-                    <div key={problem.pid} className={styles.cell}>
-                        <OriginAnchor account={account} pid={problem.pid}>
-                            {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
-                            {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
-                        </OriginAnchor>
-                    </div>
+                    <OriginAnchor account={account} pid={problem.pid}>
+                        <div key={problem.pid} className={styles.cell}>
+                            <div className={styles.inner_cell}>
+                                {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
+                                {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
+                            </div>
+                        </div>
+                    </OriginAnchor>
                 )
             })}
         </div>

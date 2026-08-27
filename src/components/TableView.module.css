@@ -84,6 +84,18 @@
     height: 30px;
 }
 
+.inner_cell {
+    width: 80px;
+    height: 29px;
+}
+
+.inner_cell:hover {
+    border-left: 1px solid var(--fog);
+    border-right: 1px solid var(--fog);
+    border-bottom: 1px solid var(--fog);
+    width: 78px;
+}
+
 .passed {
     color: var(--green);
 }
