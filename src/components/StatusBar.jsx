@@ -8,7 +8,7 @@ import styles from "./StatusBar.module.css";
 export default function StatusBar() {
     const barRef = useRef(null);
     const textRef = useRef(null);
-    const [visible, setVisible] = useState(true);
+    const [visible, setVisible] = useState(false);
     const [done, setDone] = useState(0);
     const [total, setTotal] = useState(0);
     const handleProgress = useCallback((data) => {
