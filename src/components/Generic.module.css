@@ -2,7 +2,9 @@
 
 .anchor {
     transition: filter 0.1s ease-in-out;
+    color: var(--blue);
     text-decoration: none;
+    cursor: pointer;
 }
 
 .anchor:not(.light) {
@@ -10,11 +12,15 @@
 }
 
 .anchor:hover {
-    filter: brightness(0.75);
+    filter: var(--filter-lv2);
 }
 
 .anchor:active {
-    filter: brightness(0.5);
+    filter: var(--filter-lv3);
+}
+
+.anchor.disabled {
+    cursor: default;
 }
 
 .button {

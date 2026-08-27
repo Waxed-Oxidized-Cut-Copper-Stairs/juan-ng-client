@@ -46,6 +46,19 @@ async function acquireProblem(pid) {
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-pid", data: pid })));
 }
 
+/**
+ * @param {string} pid 
+ * @returns {Promise<{ passed: Map<number, [string, string | number]>, submitted: Map<number, [string, string | number]> }>}
+ */
+async function acquireOrigin(pid) {
+    return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-origin", data: pid }))).then(ret => {
+        return {
+            passed: new Map(ret.passed),
+            submitted: new Map(ret.submitted)
+        };
+    });
+}
+
 /** @type {Map<number, LuoguProfileNew>} */
 const cachedProfiles = new Map();
 /**
@@ -153,4 +166,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-export { acquireProblem, acquireUserProfile, acquireProgress, acquireUID }
+export { acquireProblem, acquireOrigin, acquireUserProfile, acquireProgress, acquireUID }

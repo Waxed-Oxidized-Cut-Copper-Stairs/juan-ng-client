@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Generic.module.css";
-import { acquireUserProfile, subscribe } from "../protocol_v2";
+import { acquireOrigin, acquireUserProfile, subscribe } from "../protocol_v2";
 
 /**
  * @param {number} p
@@ -142,6 +142,48 @@ export function Username({ account, ...rest }) {
     return (
         <span {...rest}>{username ?? `UID ${account.luogu}`}</span>
     )
+}
+/**
+ * @param {Object} options
+ * @param {Account} [options.account]
+ * @param {string} [options.pid]
+ */
+export function OriginAnchor({ children, account, pid }) {
+    const [url, setUrl] = useState("");
+    const uid = account.luogu;
+    const update = useCallback(async () => {
+        const origin = await acquireOrigin(pid);
+        /** @type {[string, string | number]} */
+        let ori;
+        if (origin.passed.has(uid)) ori = origin.passed.get(uid);
+        else if (origin.submitted.has(uid)) ori = origin.submitted.get(uid);
+        else return;
+        const [src, handle] = ori;
+        if (src == "lg") {
+            setUrl(`https://www.luogu.com.cn/record/list?pid=${pid}&user=${handle}`);
+        } else if (src == "cf") {
+            if (!pid.startsWith("CF")) return;
+            const cpid = pid.slice(2).match(/^\d+/);
+            if (!cpid) return;
+            setUrl(`https://codeforces.com/submissions/${handle}?contestId=${cpid[0]}`);
+        } else if (src == "at") {
+            if (!pid.startsWith("AT_")) return;
+            const idx = pid.lastIndexOf("_");
+            const cpid = pid.slice(3, idx).replaceAll("_", "-");
+            const ppid = pid.slice(3);
+            setUrl(`https://atcoder.jp/contests/${cpid}/submissions?f.Task=${ppid}&f.User=${handle}`);
+        } else {
+            setUrl(null);
+        }
+    }, [uid, pid]);
+    useEffect(() => {
+        update();
+        const unload = subscribe(`problem`, () => update());
+        return () => {
+            unload();
+        }
+    }, [uid, pid]);
+    return <Anchor href={url || undefined}>{children}</Anchor>
 }
 
 /**

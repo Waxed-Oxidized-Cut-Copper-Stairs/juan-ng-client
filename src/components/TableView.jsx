@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, Username } from "./Generic";
+import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
 import { acquireProblem, acquireUserProfile, subscribe } from "../protocol_v2";
 
@@ -63,8 +63,10 @@ function RowView({ account, problems }) {
             {problems.map(({ problem, situation }) => {
                 return (
                     <div key={problem.pid} className={styles.cell}>
-                        {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
-                        {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
+                        <OriginAnchor account={account} pid={problem.pid}>
+                            {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
+                            {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
+                        </OriginAnchor>
                     </div>
                 )
             })}

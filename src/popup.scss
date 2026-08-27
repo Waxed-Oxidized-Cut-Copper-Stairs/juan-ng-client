@@ -14,19 +14,6 @@ body {
     color: var(--text-color);
 }
 
-a {
-    color: var(--blue);
-    text-decoration: none;
-}
-
-a:hover {
-    filter: var(--filter-lv1);
-}
-
-a:active {
-    filter: var(--filter-lv2);
-}
-
 ul {
     margin: 8px 0;
 }

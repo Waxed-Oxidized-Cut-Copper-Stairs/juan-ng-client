@@ -145,24 +145,58 @@ class PidToUid {
         if (!this.mp.has(pid)) return null;
         return this.mp.get(pid);
     }
+    toJSONable(pid) {
+        return Array.from(this.get(pid) ?? []);
+    }
 };
 const passedMap = new PidToUid();
 const submittedMap = new PidToUid();
+class PidToOrigin {
+    constructor() {
+        /** @type {Map<string, Map<number, [string, string | number]>>>} */
+        this.mp = new Map();
+    }
+    ensure(pid) {
+        if (this.mp.has(pid)) return;
+        this.mp.set(pid, new Map());
+    }
+    add(pid, uid, origin, handle) {
+        this.ensure(pid);
+        const mp = this.mp.get(pid);
+        if (mp.has(uid) && mp.get(uid)[0] === "lg") return;
+        mp.set(uid, [origin, handle]);
+    }
+    get(pid) {
+        if (!this.mp.has(pid)) return null;
+        return this.mp.get(pid);
+    }
+    toJSONable(pid) {
+        return Array.from(this.get(pid) ?? []);
+    }
+};
+const passedOriginMap = new PidToOrigin();
+const submittedOriginMap = new PidToOrigin();
 /**
  * @param {string} pid
  * @param {number} uid
+ * @param {string} origin
+ * @param {string | number} handle
  */
-function addPassed(pid, uid) {
+function addPassed(pid, uid, origin, handle) {
     submittedMap.del(pid, uid);
     passedMap.add(pid, uid);
+    passedOriginMap.add(pid, uid, origin, handle);
 }
 /**
  * @param {string} pid
  * @param {number} uid
+ * @param {string} origin
+ * @param {string | number} handle
  */
-function addSubmitted(pid, uid) {
+function addSubmitted(pid, uid, origin, handle) {
     if (passedMap.get(pid)?.has(uid)) return;
     submittedMap.add(pid, uid);
+    submittedOriginMap.add(pid, uid, origin, handle);
 }
 /**
  * @param {number} uid
@@ -170,8 +204,8 @@ function addSubmitted(pid, uid) {
  */
 function addLGPractice(uid, practice) {
     const { passed, submitted, name, privacy } = practice;
-    for (const prob of submitted) addSubmitted(prob.pid, uid);
-    for (const prob of passed) addPassed(prob.pid, uid);
+    for (const prob of submitted) addSubmitted(prob.pid, uid, "lg", uid);
+    for (const prob of passed) addPassed(prob.pid, uid, "lg", uid);
     const old = profiles.get(uid);
     if (!profiles.has(uid) || old.name !== name || old.privacy !== privacy) {
         profiles.set(uid, { name, privacy });
@@ -186,10 +220,10 @@ function addCFPractice(handle, practice) {
     const { passed, submitted } = practice;
     const uid = parseCFUid(handle);
     for (const prob of submitted) {
-        addSubmitted(parseCodeforcesProblem(prob), uid);
+        addSubmitted(parseCodeforcesProblem(prob), uid, "cf", handle);
     }
     for (const prob of passed) {
-        addPassed(parseCodeforcesProblem(prob), uid);
+        addPassed(parseCodeforcesProblem(prob), uid, "cf", handle);
     }
 }
 /**
@@ -200,10 +234,10 @@ function addATPractice(handle, practice) {
     const { passed, submitted } = practice;
     const uid = parseATUid(handle);
     for (const prob of submitted) {
-        addSubmitted(parseATPid(prob), uid);
+        addSubmitted(parseATPid(prob), uid, "at", handle);
     }
     for (const prob of passed) {
-        addPassed(parseATPid(prob), uid);
+        addPassed(parseATPid(prob), uid, "at", handle);
     }
 }
 
@@ -632,8 +666,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "query-pid":
             sendResponse({
-                passed: Array.from(passedMap.get(data) ?? []),
-                submitted: Array.from(submittedMap.get(data) ?? [])
+                passed: passedMap.toJSONable(data),
+                submitted: submittedMap.toJSONable(data)
+            })
+            break;
+        case "query-origin":
+            sendResponse({
+                passed: passedOriginMap.toJSONable(data),
+                submitted: submittedOriginMap.toJSONable(data)
             })
             break;
         case "query-profile":
