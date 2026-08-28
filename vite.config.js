@@ -106,10 +106,12 @@ export default defineConfig({
                 popup: resolve(import.meta.dirname, "popup.html"),
                 offscreen: resolve(import.meta.dirname, "offscreen.html"),
                 content: resolve(import.meta.dirname, "src/content.jsx"),
+                "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
             },
             output: {
                 entryFileNames: (chunkInfo) => {
                     if (chunkInfo.name === "content") return "content.js";
+                    if (chunkInfo.name === "service-worker") return "service-worker.js";
                     return "assets/[name].[hash].js";
                 },
                 chunkFileNames: "assets/[name].[hash].js",

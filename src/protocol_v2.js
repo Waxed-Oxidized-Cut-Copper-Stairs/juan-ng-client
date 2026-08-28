@@ -7,7 +7,7 @@ protocol_v2.js
 */
 
 import { Lock, sleep } from "./lib/asyncio.js";
-import { error } from "../public/lib/core.js";
+import { error } from "./lib/core.js";
 
 export function ping() {
     try {

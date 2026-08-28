@@ -3,7 +3,7 @@
 console.log("离屏页面 >w<");
 
 import { sleep } from "./lib/asyncio.js";
-import { error, log } from "../public/lib/core.js";
+import { error, log } from "./lib/core.js";
 import { CacheDB } from "./lib/database.js";
 import { randint, shuffle } from "./lib/random.js";
 
