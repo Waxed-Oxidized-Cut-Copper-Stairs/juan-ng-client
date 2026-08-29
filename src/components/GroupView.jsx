@@ -16,7 +16,6 @@ export function QuickView({ ac, wa, na, tot, visible }) {
                     <span className={styles.wa}>{wa} </span>
                     <span className={styles.na}>{na} </span>
                     / {tot}
-                    {/* <span style={{ color: percentToColor(Math.cbrt(ac / tot)) }}>{percentToString(ac, tot)}</span> */}
                 </div>
             </AnimatedView>
         </div>
@@ -156,9 +155,9 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, origi
 
 /**
  * @param {Object} options
- * @param {Group[]} [options.groups] 注意：假设 groups 不变
- * @param {string} [options.pid]
- * @param {boolean} [options.verbose]
+ * @param {Group[]} options.groups 注意：假设 groups 不变
+ * @param {string} options.pid
+ * @param {boolean} options.verbose
  */
 export function GroupView({ groups, pid, children, verbose }) {
     const [passed, setPassed] = useState(new Set());

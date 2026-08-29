@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, Children, cloneElement, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import styles from "./Generic.module.css";
-import { acquireOrigin, acquireUserProfile, subscribe } from "../protocol_v2";
 
 /**
  * @param {number} p

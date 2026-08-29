@@ -229,7 +229,7 @@ function Card({ pid }) {
 
 /**
  * @param {Object} options
- * @param {HTMLElement} [options.element]
+ * @param {HTMLElement} options.element
  */
 function TrainingEntry({ element, setTrainingVisible }) {
     useEffect(() => {

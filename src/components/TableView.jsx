@@ -7,7 +7,7 @@ import { acquireAllUserProfile, acquireOrigin, acquireProblem, subscribe } from 
 
 /**
  * @param {Object} options
- * @param {LuoguProblemDetail[]} [options.problems]
+ * @param {LuoguProblemDetail[]} options.problems
  */
 function HeaderView({ problems, ref }) {
     return (
@@ -30,9 +30,9 @@ function HeaderView({ problems, ref }) {
 
 /**
  * @param {Object} options
- * @param {Account[]} [options.users]
- * @param {Map<number, LuoguProfileNew>} [options.profiles]
- * @param {Map<number, number>} [options.count]
+ * @param {Account[]} options.users
+ * @param {Map<number, LuoguProfileNew>} options.profiles
+ * @param {Map<number, number>} options.count
  */
 function TitleView({ users, profiles, count }) {
     return (
