@@ -687,6 +687,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "query-profile":
             sendResponse(profiles.get(data));
             break;
+        case "query-all-profile":
+            sendResponse(Array.from(profiles));
+            break;
         case "query-progress":
             sendResponse({ done: lasLgDone + lasCfDone + lasAtDone, total: lgUIDs.length + cfHandles.length + atHandles.length });
             break;

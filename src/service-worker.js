@@ -48,6 +48,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "query-pid":
         case "query-origin":
         case "query-profile":
+        case "query-all-profile":
         case "query-progress": {
             sendResponseWrapper(offscreenReady.then(async () => {
                 return chrome.runtime.sendMessage({ dst: "offscreen", type, data });

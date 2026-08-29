@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
-import { acquireProblem, acquireUserProfile, subscribe } from "../protocol_v2";
+import { acquireAllUserProfile, acquireProblem, subscribe } from "../protocol_v2";
 
 /**
  * @param {Object} options
@@ -115,17 +115,8 @@ export default function TableView({ users, problems }) {
         if (mountedRef.current) setProb(newProb);
     }, [problems]);
     const updateProfile = useCallback(async () => {
-        const newProfiles = new Map();
-        const promises = [];
-        for (const account of users) {
-            const uid = account.luogu;
-            promises.push(acquireUserProfile(uid).then((profile) => {
-                if (!profile) return;
-                newProfiles.set(uid, profile);
-            }));
-        }
-        await Promise.allSettled(promises);
-        if (mountedRef.current) setProfiles(newProfiles);
+        const newProfiles = await acquireAllUserProfile();
+        if (mountedRef.current) setProfiles(new Map(newProfiles));
     }, [users]);
     const updateScroll = useCallback(() => {
         /** @type {HTMLDivElement} */

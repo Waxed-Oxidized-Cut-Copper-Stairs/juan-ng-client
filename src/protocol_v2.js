@@ -73,6 +73,8 @@ async function acquireOrigin(pid) {
     return promise;
 }
 
+let allProfilesCached = false;
+const profileLock = new Lock();
 /** @type {Map<number, LuoguProfileNew>} */
 const cachedProfiles = new Map();
 /**
@@ -86,6 +88,22 @@ async function acquireUserProfile(uid) {
         cachedProfiles.set(uid, ret);
         return ret;
     });
+}
+/**
+ * @returns {Promise<Map<number, LuoguProfileNew>>}
+ */
+async function acquireAllUserProfile() {
+    if (allProfilesCached) return cachedProfiles;
+    await profileLock.acquire();
+    if (allProfilesCached) return cachedProfiles;
+    return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-all-profile" }))).then(ret => {
+        if (!ret) return cachedProfiles;
+        allProfilesCached = true;
+        for (const [key, val] of ret) {
+            cachedProfiles.set(key, val);
+        }
+        return cachedProfiles;
+    }).finally(() => profileLock.release());
 }
 
 /** @returns {Promise<{ done: number, total: number } | null>} */
@@ -181,4 +199,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-export { acquireProblem, acquireOrigin, acquireUserProfile, acquireProgress, acquireUID }
+export { acquireProblem, acquireOrigin, acquireUserProfile, acquireAllUserProfile, acquireProgress, acquireUID }
