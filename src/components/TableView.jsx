@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
-import { acquireAllUserProfile, acquireProblem, subscribe } from "../protocol_v2";
+import { acquireAllUserProfile, acquireOrigin, acquireProblem, subscribe } from "../protocol_v2";
 
 /**
  * @param {Object} options
@@ -14,7 +14,7 @@ function HeaderView({ problems, ref }) {
         <div ref={ref} className={styles.header}>
             {problems.map((problem) => {
                 return (
-                    <FloatDivContainer holdFloat={false}>
+                    <FloatDivContainer key={problem.pid} holdFloat={false}>
                         <FloatDiv anchor={["top"]}>
                             <div>{problem.pid} {problem.name}</div>
                         </FloatDiv>
@@ -55,16 +55,17 @@ function TitleView({ users, profiles, count }) {
 
 /**
  * @param {Object} options
- * @param {Account} [options.account]
- * @param {{problem: LuoguProblem, situation: { passed: Set<number>, submitted: Set<number> }}[]} [options.problems]
+ * @param {Account} options.account
+ * @param {{problem: LuoguProblem, situation: { passed: Set<number>, submitted: Set<number> }}[]} options.problems
+ * @param {Map<string, Origin>} options.origins
  */
-function RowView({ account, problems }) {
+function RowView({ account, problems, origins }) {
     return (
         <div>
             {problems.map(({ problem, situation }) => {
                 return (
-                    <OriginAnchor account={account} pid={problem.pid}>
-                        <div key={problem.pid} className={styles.cell}>
+                    <OriginAnchor key={problem.pid} account={account} pid={problem.pid} origin={origins.get(problem.pid) ?? { passed: new Map(), submitted: new Map() }}>
+                        <div className={styles.cell}>
                             <div className={styles.inner_cell}>
                                 {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
                                 {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
@@ -79,13 +80,14 @@ function RowView({ account, problems }) {
 
 /**
  * @param {Object} options
- * @param {Account[]} [options.users]
- * @param {LuoguProblemDetail[]} [options.problems]
+ * @param {Account[]} options.users
+ * @param {LuoguProblemDetail[]} options.problems
  */
 export default function TableView({ users, problems }) {
     const [prob, setProb] = useState([]);
     const [profiles, setProfiles] = useState(new Map());
     const [order, setOrder] = useState([]);
+    const [origins, setOrigins] = useState(new Map());
     const [count, setCount] = useState(new Map());
     const mountedRef = useRef(null);
     const headerRef = useRef(null);
@@ -118,7 +120,14 @@ export default function TableView({ users, problems }) {
     const updateProfile = useCallback(async () => {
         const newProfiles = await acquireAllUserProfile();
         if (mountedRef.current) setProfiles(new Map(newProfiles));
-    }, [users]);
+    }, []);
+    const updateOrigin = useCallback(async () => {
+        const newOrigins = new Map();
+        for (const problem of problems) {
+            newOrigins.set(problem.pid, await acquireOrigin(problem.pid));
+        }
+        if (mountedRef.current) setOrigins(newOrigins);
+    }, [problems]);
     const updateScroll = useCallback(() => {
         /** @type {HTMLDivElement} */
         const div = headerRef.current;
@@ -155,24 +164,29 @@ export default function TableView({ users, problems }) {
     useEffect(() => {
         update();
         updateProfile();
+        updateOrigin();
         updateScroll();
         const abort = new AbortController();
         document.addEventListener("visibilitychange", () => {
             update();
             updateProfile();
+            updateOrigin();
             updateScroll();
         }, { signal: abort.signal });
         document.addEventListener("scroll", () => {
             updateScroll();
         }, { signal: abort.signal });
         const unload = subscribe("problem", () => update());
-        const unload2 = subscribe("profile", () => updateProfile());
+        const unload2 = subscribe("profile", () => {
+            updateProfile();
+            updateOrigin();
+        });
         return () => {
             abort.abort();
             unload();
             unload2();
         };
-    }, [users, problems, update, updateScroll]);
+    }, [users, problems, update, updateProfile, updateOrigin, updateScroll]);
     return (
         <div ref={mountedRef}>
             <div className={styles.table}>
@@ -181,7 +195,7 @@ export default function TableView({ users, problems }) {
                     <HeaderView ref={headerRef} problems={problems} />
                     {order.map((account) => {
                         return (
-                            <RowView key={account.luogu} account={account} problems={prob} />
+                            <RowView key={account.luogu} account={account} problems={prob} origins={origins} />
                         )
                     })}
                 </div>

@@ -135,12 +135,12 @@ export function Username({ account, profile, ...rest }) {
  * @param {Object} options
  * @param {Account} options.account
  * @param {string} options.pid
+ * @param {Origin} options.origin
  */
-export function OriginAnchor({ children, account, pid }) {
+export function OriginAnchor({ children, account, pid, origin }) {
     const [url, setUrl] = useState("");
     const uid = account.luogu;
-    const update = useCallback(async () => {
-        const origin = await acquireOrigin(pid);
+    useEffect(() => {
         /** @type {[string, string | number]} */
         let ori;
         if (origin.passed.has(uid)) ori = origin.passed.get(uid);
@@ -163,17 +163,7 @@ export function OriginAnchor({ children, account, pid }) {
         } else {
             setUrl(null);
         }
-    }, [uid, pid]);
-    useEffect(() => {
-        const abort = new AbortController();
-        update();
-        document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
-        const unload = subscribe(`problem`, () => update());
-        return () => {
-            abort.abort();
-            unload();
-        }
-    }, [uid, pid]);
+    }, [uid, pid, origin]);
     return <Anchor href={url || undefined}>{children}</Anchor>
 }
 

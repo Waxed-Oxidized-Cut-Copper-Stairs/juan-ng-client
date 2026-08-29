@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AnimatedView, { Button, FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, percentToColor, percentToString, Username } from "./Generic";
 import styles from "./GroupView.module.css";
 
-import { acquireProblem, acquireUserProfile, flushSpecificCache, subscribe } from "../protocol_v2";
+import { acquireOrigin, acquireProblem, acquireUserProfile, flushSpecificCache, subscribe } from "../protocol_v2";
 import StatusBar, { OnlineStatusBar } from "./StatusBar";
 
 export function QuickView({ ac, wa, na, tot, visible }) {
@@ -28,12 +28,13 @@ export function QuickView({ ac, wa, na, tot, visible }) {
  * @param {Account} options.account
  * @param {LuoguProfileNew} options.profile
  * @param {string} options.pid
+ * @param {Origin} options.origin
  * @param {number} options.state
  */
-export function SingleView({ account, profile, pid, state }) {
+export function SingleView({ account, profile, pid, origin, state }) {
     return (
         <div className={styles.singleview}>
-            <OriginAnchor account={account} pid={pid}>
+            <OriginAnchor account={account} pid={pid} origin={origin}>
                 <Username account={account} profile={profile} className={state == 1 ? styles.ac : styles.wa} />
             </OriginAnchor>
         </div >
@@ -47,9 +48,10 @@ export function SingleView({ account, profile, pid, state }) {
  * @param {Set<number>} options.passed
  * @param {Set<number>} options.submitted
  * @param {Map<number, LuoguProfileNew>} options.profiles
+ * @param {Origin} options.origin
  * @param {boolean} [options.verbose=false]
  */
-export function SingleGroupView({ group, pid, passed, submitted, profiles, verbose = false }) {
+export function SingleGroupView({ group, pid, passed, submitted, profiles, origin, verbose = false }) {
     const [visible, setVisible] = useState(false);
     const { cntAC, cntWA, cntNA } = useMemo(() => {
         let cntAC = 0, cntWA = 0, cntNA = 0;
@@ -68,7 +70,7 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
                 const state = passed.has(uid) ? 1 : (submitted.has(uid) ? 2 : 0);
                 if (!state) return null;
                 return (
-                    <SingleView key={idx} account={account} profile={profiles.get(uid) ?? {}} pid={pid} state={state} />
+                    <SingleView key={idx} account={account} profile={profiles.get(uid) ?? {}} pid={pid} origin={origin} state={state} />
                 )
             })}
         </div>
@@ -162,6 +164,7 @@ export function GroupView({ groups, pid, children, verbose }) {
     const [passed, setPassed] = useState(new Set());
     const [submitted, setSubmitted] = useState(new Set());
     const [profiles, setProfiles] = useState(new Map());
+    const [origin, setOrigin] = useState({ passed: new Map(), submitted: new Map() });
     const [cntNA, setCntNA] = useState(0);
     let cancelled = false;
     async function update() {
@@ -192,11 +195,23 @@ export function GroupView({ groups, pid, children, verbose }) {
         setProfiles(newProfiles);
         setCntNA(newCntNA);
     }
+    async function updateOrigin() {
+        const origin = await acquireOrigin(pid);
+        if (cancelled) return;
+        setOrigin(origin);
+    }
     useEffect(() => {
         const abort = new AbortController();
-        document.addEventListener("visibilitychange", () => { update(); updateProfile(); }, { signal: abort.signal });
+        document.addEventListener("visibilitychange", () => {
+            update();
+            updateProfile();
+            updateOrigin();
+        }, { signal: abort.signal });
         const unload1 = subscribe("problem", () => update());
-        const unload2 = subscribe("profile", () => updateProfile());
+        const unload2 = subscribe("profile", () => {
+            updateProfile();
+            updateOrigin();
+        });
         return () => {
             abort.abort();
             unload1();
@@ -206,6 +221,7 @@ export function GroupView({ groups, pid, children, verbose }) {
     useEffect(() => {
         update();
         updateProfile();
+        updateOrigin();
         return () => {
             cancelled = true;
         }
@@ -225,7 +241,7 @@ export function GroupView({ groups, pid, children, verbose }) {
             <div>
                 {groups.map((group, idx, arr) => {
                     return (
-                        <SingleGroupView key={idx} group={group} pid={pid} passed={passed} submitted={submitted} profiles={profiles} verbose={verbose} />
+                        <SingleGroupView key={idx} group={group} pid={pid} passed={passed} submitted={submitted} profiles={profiles} origin={origin} verbose={verbose} />
                     )
                 })}
             </div>
