@@ -46,30 +46,31 @@ async function acquireProblem(pid) {
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-pid", data: pid })));
 }
 
-const originLock = new Lock();
-/** @type {Map<string, { passed: Map<number, [string, string | number]>, submitted: Map<number, [string, string | number]> }>} */
+/** @type {Map<string, Promise<Origin>>} */
+const originPromise = new Map();
+/** @type {Map<string, Origin>} */
 const cachedOrigins = new Map();
 /**
  * @param {string} pid
- * @param {boolean} [force=false]
- * @returns {Promise<{ passed: Map<number, [string, string | number]>, submitted: Map<number, [string, string | number]> }>}
+ * @returns {Promise<Origin>}
  */
-async function acquireOrigin(pid, force = false) {
-    if (!force && cachedOrigins.has(pid)) return cachedOrigins.get(pid);
-    await originLock.acquire();
-    try {
-        if (!force && cachedOrigins.has(pid)) return cachedOrigins.get(pid);
-        return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-origin", data: pid }))).then(ret => {
+async function acquireOrigin(pid) {
+    if (cachedOrigins.has(pid)) return cachedOrigins.get(pid);
+    if (originPromise.has(pid)) return originPromise.get(pid);
+    const promise = timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-origin", data: pid })))
+        .then(ret => {
             const dt = {
                 passed: new Map(ret.passed),
                 submitted: new Map(ret.submitted)
             };
             cachedOrigins.set(pid, dt);
             return dt;
+        })
+        .finally(() => {
+            originPromise.delete(pid);
         });
-    } finally {
-        originLock.release();
-    }
+    originPromise.set(pid, promise);
+    return promise;
 }
 
 /** @type {Map<number, LuoguProfileNew>} */

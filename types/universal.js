@@ -11,3 +11,10 @@
  * @typedef {{name: string, accounts: Account[]}} Group
  * @typedef {"lg" | "cf" | "at"} Domain
  */
+
+/**
+ * @typedef {{
+ *   passed: Map<number, [string, string | number]>,
+ *   submitted: Map<number, [string, string | number]>
+ * }} Origin
+ */
