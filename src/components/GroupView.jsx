@@ -25,15 +25,16 @@ export function QuickView({ ac, wa, na, tot, visible }) {
 
 /**
  * @param {Object} options
- * @param {Account} [options.account]
- * @param {string} [options.pid]
- * @param {number} [options.state]
+ * @param {Account} options.account
+ * @param {LuoguProfileNew} options.profile
+ * @param {string} options.pid
+ * @param {number} options.state
  */
-export function SingleView({ account, pid, state }) {
+export function SingleView({ account, profile, pid, state }) {
     return (
         <div className={styles.singleview}>
             <OriginAnchor account={account} pid={pid}>
-                <Username account={account} className={state == 1 ? styles.ac : styles.wa} />
+                <Username account={account} profile={profile} className={state == 1 ? styles.ac : styles.wa} />
             </OriginAnchor>
         </div >
     )
@@ -41,12 +42,12 @@ export function SingleView({ account, pid, state }) {
 
 /**
  * @param {Object} options
- * @param {Group} [options.group] 注意：假设 group 不变
- * @param {string} [options.pid]
- * @param {Set<number>} [options.passed]
- * @param {Set<number>} [options.submitted]
- * @param {Map<number, LuoguProfileNew>} [options.profiles]
- * @param {boolean} [options.verbose]
+ * @param {Group} options.group 注意：假设 group 不变
+ * @param {string} options.pid
+ * @param {Set<number>} options.passed
+ * @param {Set<number>} options.submitted
+ * @param {Map<number, LuoguProfileNew>} options.profiles
+ * @param {boolean} [options.verbose=false]
  */
 export function SingleGroupView({ group, pid, passed, submitted, profiles, verbose = false }) {
     const [visible, setVisible] = useState(false);
@@ -63,10 +64,11 @@ export function SingleGroupView({ group, pid, passed, submitted, profiles, verbo
     const div = (
         <div>
             {group.accounts.map((account, idx, arr) => {
-                const state = passed.has(account.luogu) ? 1 : (submitted.has(account.luogu) ? 2 : 0);
+                const uid = account.luogu;
+                const state = passed.has(uid) ? 1 : (submitted.has(uid) ? 2 : 0);
                 if (!state) return null;
                 return (
-                    <SingleView key={idx} account={account} pid={pid} state={state} />
+                    <SingleView key={idx} account={account} profile={profiles.get(uid) ?? {}} pid={pid} state={state} />
                 )
             })}
         </div>

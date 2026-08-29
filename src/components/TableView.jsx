@@ -39,12 +39,13 @@ function TitleView({ users, profiles, count }) {
         <div className={styles.title}>
             <div className={styles.special_cell} />
             {users.map((account) => {
+                const uid = account.luogu;
                 return (
-                    <div key={account.luogu} className={`${styles.title_cell} ${profiles.get(account.luogu)?.privacy ? styles.privacy : ""}`.trim()}>
+                    <div key={uid} className={`${styles.title_cell} ${profiles.get(uid)?.privacy ? styles.privacy : ""}`.trim()}>
                         <div className={styles.title_cell_left}>
-                            <Username account={account} />
+                            <Username account={account} profile={profiles.get(uid) ?? {}} />
                         </div>
-                        <div className={styles.title_cell_right}>{count.get(account.luogu) ?? -1}</div>
+                        <div className={styles.title_cell_right}>{count.get(uid) ?? -1}</div>
                     </div>
                 )
             })}

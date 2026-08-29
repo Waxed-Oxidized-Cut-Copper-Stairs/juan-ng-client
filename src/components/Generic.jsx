@@ -122,34 +122,19 @@ export function ComboBox({ items, selected, setSelected }) {
 
 /**
  * @param {Object} options
- * @param {Account} [options.account]
+ * @param {Account} options.account
+ * @param {LuoguProfileNew} options.profile
  */
-export function Username({ account, ...rest }) {
-    const [username, setUsername] = useState();
+export function Username({ account, profile, ...rest }) {
     const uid = account.luogu;
-    const update = useCallback(async () => {
-        const profile = await acquireUserProfile(uid);
-        if (!profile) return;
-        setUsername(profile.name);
-    }, [uid]);
-    useEffect(() => {
-        const abort = new AbortController();
-        update();
-        document.addEventListener("visibilitychange", () => update(), { signal: abort.signal });
-        const unload = subscribe(`profile-${uid}`, () => update());
-        return () => {
-            abort.abort();
-            unload();
-        }
-    }, [uid]);
     return (
-        <span {...rest}>{username ?? `uid:${account.luogu}`}{account.star > 0 && "🌟"}</span>
+        <span {...rest}>{profile.name ?? `uid:${uid}`}{account.star > 0 && "🌟"}</span>
     )
 }
 /**
  * @param {Object} options
- * @param {Account} [options.account]
- * @param {string} [options.pid]
+ * @param {Account} options.account
+ * @param {string} options.pid
  */
 export function OriginAnchor({ children, account, pid }) {
     const [url, setUrl] = useState("");
