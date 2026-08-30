@@ -77,8 +77,9 @@ function DropBox() {
         document.addEventListener("visibilitychange", () => hideAll(), { signal: abort.signal });
         const app = document.getElementById("app") ?? document.documentElement;
         app.addEventListener("mouseover", (e) => {
-            /** @type {HTMLAnchorElement | null} */
-            const node = e.target?.closest("a[href]");
+            const path = e.composedPath();
+            /** @type {HTMLAnchorElement | undefined} */
+            const node = path.find(el => el instanceof HTMLAnchorElement);
             if (!node) return;
             if (node === e.relatedTarget || node.contains(e.relatedTarget)) return;
             const newPid = getPid(new URL(node.href));
@@ -87,8 +88,9 @@ function DropBox() {
             }
         }, { signal: abort.signal });
         app.addEventListener("mouseout", (e) => {
-            /** @type {HTMLAnchorElement | null} */
-            const node = e.target?.closest("a[href]");
+            const path = e.composedPath();
+            /** @type {HTMLAnchorElement | undefined} */
+            const node = path.find(el => el instanceof HTMLAnchorElement);
             if (!node) return;
             if (node === e.relatedTarget || node.contains(e.relatedTarget)) return;
             if (currentRef.current === node) hide(node);
