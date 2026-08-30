@@ -40,6 +40,7 @@ export function percentToColor(p) {
 }
 export function percentToString(p, q) {
     if (p == 0) return "0%";
+    else if (q == 0) return "100%";
     else if (p == q) return "100%";
     return `${(p / q * 100).toFixed(0)}%`;
 }
