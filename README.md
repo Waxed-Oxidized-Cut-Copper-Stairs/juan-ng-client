@@ -96,3 +96,6 @@ git checkout -fB release FETCH_HEAD
 
 除了更新前台页面，本插件还在监听 `visibilitychange` 时更新数据，但分屏标签页切换不触发 `visibilitychange`。
 
+---
+
+无法处理一些历史遗留问题，比如 CF802J3 在洛谷上被错误标注为 CF802L。
