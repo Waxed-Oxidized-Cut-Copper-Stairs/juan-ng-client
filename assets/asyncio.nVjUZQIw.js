@@ -1,0 +1,1 @@
+async function e(e){await new Promise(t=>setTimeout(t,e))}var t=class{constructor(){this.busy=!1,this.queue=[]}acquire(){return this.busy?new Promise(e=>{this.queue.push(e)}):(this.busy=!0,Promise.resolve())}release(){this.queue.length>0?this.queue.shift()():this.busy=!1}};export{e as n,t};
