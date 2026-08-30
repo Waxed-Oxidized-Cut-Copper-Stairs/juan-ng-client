@@ -8,7 +8,7 @@ import { createRoot } from "react-dom/client";
 import { createPortal } from "react-dom";
 import FadeAnimation, { Button, clampCoord, ComboBox, getPid, ShadowRoot } from "./components/Generic.jsx";
 import { GroupView } from "./components/GroupView.jsx";
-import { flushCache, flushSpecificCache, subscribe } from "./protocol_v2.js";
+import { acquireProblem, acquireUID, flushCache, flushSpecificCache, subscribe } from "./protocol_v2.js";
 import styles from "./content.module.scss";
 import cssText1 from "./content.module.scss?inline";
 import cssText2 from "./components/Generic.module.css?inline";
@@ -37,6 +37,7 @@ function DropBox() {
     const [pid, setPid] = useState(null);
     const [visible, setVisible] = useState(false);
     const [current, setCurrent] = useState(null);
+    const h3Ref = useRef(null);
     const currentRef = useRef(null);
     const dropboxRef = useRef(null);
     const nxtRef = useRef(null);
@@ -101,6 +102,23 @@ function DropBox() {
             unload();
         };
     }, [show, hide, hideAll]);
+    useEffect(() => {
+        (async () => {
+            if (!h3Ref.current) return;
+            const uid = await acquireUID();
+            if (!h3Ref.current) return;
+            const { passed, submitted } = await acquireProblem(pid);
+            /** @type {HTMLHeadingElement} */
+            const h3 = h3Ref.current;
+            if (passed.includes(uid)) {
+                h3.style.color = "var(--green)";
+            } else if (submitted.includes(uid)) {
+                h3.style.color = "var(--red)";
+            } else {
+                h3.style.color = "var(--text-color)";
+            }
+        })();
+    }, [pid]);
     useLayoutEffect(() => {
         if (!visible || !dropboxRef.current || !current) return;
         const node = current;
@@ -185,7 +203,10 @@ function DropBox() {
                         onMouseLeave={() => hide(currentRef.current)}
                     >
                         <GroupView groups={users} pid={pid}>
-                            <h3 className={styles.xh3}>{pid} 的通过情况</h3>
+                            <h3 className={styles.xh3}>
+                                <span ref={h3Ref}>{pid}</span>
+                                {" 的通过情况"}
+                            </h3>
                         </GroupView>
                     </div>
                 </div>
