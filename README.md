@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机客户端
 
-*Last Update：2026-08-19*
+*Last Update：2026-08-30*
 
 > 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
 >
@@ -47,12 +47,12 @@ Git 克隆相关问题请见 [juan-ng-server 的常见问题 QA](https://github.
 - 操作系统
   - Ubuntu 20.04.6 LTS
 - 扩展使用环境
-  - Microsoft Edge 150.0.4078.105
+  - Microsoft Edge 151.0.4129.107
 - 前端编译环境
-  - Node.js 24.14.0
-  - NPM 11.19.0
+  - Node.js 24.20.0
+  - NPM 12.0.2
   - React 19.2.8
-  - Vite 8.2.0
+  - Vite 8.2.2
   - 详见 package.json 和 package-lock.json
 
 ## 更新指南
