@@ -622,15 +622,19 @@ async function mainloop() {
                 else lg.push([uid, d]);
             }
             shuffle(lg);
-        }
-        for (const [uid, d] of lg) {
-            promises.push(crawlLuogu(uid, d)
-                .catch(err => {
-                    error(err);
-                }).finally(() => {
-                    ++lgDone;
-                    checkProgress();
-                }));
+            checkProgress();
+            for (const [uid, d] of lg) {
+                promises.push(crawlLuogu(uid, d)
+                    .catch(err => {
+                        error(err);
+                    }).finally(() => {
+                        ++lgDone;
+                        checkProgress();
+                    }));
+            }
+        } else {
+            lgDone = lgUIDs.length;
+            checkProgress();
         }
         for (const handle of cfHandles) {
             // CodeForces 不存在永久缓存，故不需要特殊处理 pri 变化
