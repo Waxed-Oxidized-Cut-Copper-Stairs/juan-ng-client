@@ -622,7 +622,6 @@ async function mainloop() {
                 else lg.push([uid, d]);
             }
             shuffle(lg);
-            checkProgress();
             for (const [uid, d] of lg) {
                 promises.push(crawlLuogu(uid, d)
                     .catch(err => {
@@ -634,7 +633,6 @@ async function mainloop() {
             }
         } else {
             lgDone = lgUIDs.length;
-            checkProgress();
         }
         for (const handle of cfHandles) {
             // CodeForces 不存在永久缓存，故不需要特殊处理 pri 变化
