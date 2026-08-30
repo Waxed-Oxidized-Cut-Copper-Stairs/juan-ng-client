@@ -46,20 +46,24 @@ export function percentToString(p, q) {
 
 /** @param {string | null} [href] */
 export function getPid(href = null) {
-    const url = href ?? (new URL(location.href, "https://www.luogu.com.cn"));
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    if (url.hostname === "www.luogu.com.cn") {
-        if (url.pathname.startsWith("/problem/")) {
-            const urls = url.pathname.split("/").filter(Boolean);
-            const pid = urls.at(-1);
-            if (urls.at(-2) !== "problem" || pid === "list" || pid === "random" || pid === "new" || pid === undefined) return null;
-            return pid;
+    try {
+        const url = href ?? (new URL(location.href, "https://www.luogu.com.cn"));
+        if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+        if (url.hostname === "www.luogu.com.cn") {
+            if (url.pathname.startsWith("/problem/")) {
+                const urls = url.pathname.split("/").filter(Boolean);
+                const pid = urls.at(-1);
+                if (urls.at(-2) !== "problem" || pid === "list" || pid === "random" || pid === "new" || pid === undefined) return null;
+                return pid;
+            }
         }
-    }
-    if (url.hostname === "www.luogu.org") {
-        if (url.pathname.startsWith("/problemnew/show/")) {
-            return url.pathname.split("/").filter(Boolean).at(-1);
+        if (url.hostname === "www.luogu.org") {
+            if (url.pathname.startsWith("/problemnew/show/")) {
+                return url.pathname.split("/").filter(Boolean).at(-1);
+            }
         }
+    } catch (e) {
+        error(e);
     }
     return null;
 }
