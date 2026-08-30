@@ -209,7 +209,7 @@ export default function TableView({ users, problems }) {
         });
     }, []);
     return (
-        <div ref={mountedRef}>
+        <div ref={mountedRef} className={styles.root}>
             <div className={styles.table}>
                 <TitleView users={order} profiles={profiles} count={count} myUid={myUid} />
                 <div ref={bodyRef} className={styles.body} onScroll={() => updateScroll()}>

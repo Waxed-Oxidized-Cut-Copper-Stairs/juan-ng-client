@@ -1,13 +1,16 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
-.table {
+.root {
     --cell-width: 80px;
     --cell-height: 30px;
-    display: flex;
 }
 
-.table * {
+.root * {
     box-sizing: border-box;
+}
+
+.table {
+    display: flex;
 }
 
 .title {
