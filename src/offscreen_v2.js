@@ -211,7 +211,7 @@ function addLGProfile(uid, name, privacy) {
     const old = profiles.get(uid);
     if (!profiles.has(uid) || old.name !== name || old.privacy !== privacy) {
         profiles.set(uid, { name, privacy });
-        send("route-to-active-tabs", { type: "profile", data: [uid] });
+        send("route-to-active-tabs", { dst: "tab", type: "profile", data: [uid] });
     }
 }
 /**
@@ -568,8 +568,8 @@ function checkProgress() {
     lasLgDone = lgDone;
     lasCfDone = cfDone;
     lasAtDone = atDone;
-    send("route-to-active-tabs", { type: "progress", data: { done: lgDone + cfDone + atDone, total: lgUIDs.length + cfHandles.length + atHandles.length } });
-    send("route-to-active-tabs", { type: "configured" });
+    send("route-to-active-tabs", { dst: "tab", type: "progress", data: { done: lgDone + cfDone + atDone, total: lgUIDs.length + cfHandles.length + atHandles.length } });
+    send("route-to-active-tabs", { dst: "tab", type: "configured" });
 }
 /** @param {Domain[]} [domains=null] */
 async function flushCache(domains = null) {

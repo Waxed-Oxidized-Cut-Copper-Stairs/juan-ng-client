@@ -188,7 +188,8 @@ function emit(type, data) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    const { type, data } = message;
+    const { dst, type, data } = message;
+    if (dst !== "tab") return;
     switch (type) {
         case "configured":
             cachedOrigins.clear();
