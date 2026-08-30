@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import { execSync } from "child_process";
 import { resolve } from "path";
 
-const juanVersion = "2.2.0";
+const juanVersion = "2.3.0";
 const commitHash = (() => {
     try {
         return execSync("git rev-parse --short HEAD").toString().trim()
