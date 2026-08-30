@@ -88,6 +88,7 @@ for (const user of users) {
         }
     }
 }
+const lgUIDSet = new Set(lgUIDs);
 
 /** @type {CacheDB<LuoguPracticeNew>} */
 const luoguDB = new CacheDB("Luogu");
@@ -203,17 +204,25 @@ function addSubmitted(pid, uid, origin, handle) {
 }
 /**
  * @param {number} uid
+ * @param {string} name
+ * @param {boolean} privacy
+ */
+function addLGProfile(uid, name, privacy) {
+    const old = profiles.get(uid);
+    if (!profiles.has(uid) || old.name !== name || old.privacy !== privacy) {
+        profiles.set(uid, { name, privacy });
+        send("route-to-active-tabs", { type: "profile", data: [uid] });
+    }
+}
+/**
+ * @param {number} uid
  * @param {LuoguPracticeNew} practice
  */
 function addLGPractice(uid, practice) {
     const { passed, submitted, name, privacy } = practice;
     for (const prob of submitted) addSubmitted(prob.pid, uid, "lg", uid);
     for (const prob of passed) addPassed(prob.pid, uid, "lg", uid);
-    const old = profiles.get(uid);
-    if (!profiles.has(uid) || old.name !== name || old.privacy !== privacy) {
-        profiles.set(uid, { name, privacy });
-        send("route-to-active-tabs", { type: "profile", data: [uid] });
-    }
+    addLGProfile(uid, name, privacy);
 }
 /**
  * @param {string} handle
@@ -284,6 +293,47 @@ async function fetchAPI(url, key = null, db = null) {
 
 let luoguLock = sleep(60 * 1000);
 /**
+ * @param {string} json
+ * @param {number | null} [uid]
+ * @param {string | null} [key]
+ * @param {number | null} [duration]
+ */
+async function handleLuogu(json, uid = null, key = null, duration = null) {
+    const content = JSON.parse(json);
+    if (content.template !== "user.show") {
+        throw Error(`handleLuogu: 无法识别的模板 ${content.template}`);
+    }
+    const { passed, submitted, user, privacy } = content.data;
+    if (passed === undefined || submitted === undefined || user === undefined) {
+        throw Error(`handleLuogu: 格式错误 ${content.data}`);
+    }
+    if (key === null || key === undefined) {
+        uid = user.uid;
+        if (!lgUIDSet.has(uid)) {
+            throw Error(`handleLuogu: UID ${uid} 不在监控列表中`);
+        }
+        key = luoguKey(uid);
+        duration = luoguDuration(uid);
+    }
+    /** @type {LuoguPracticeNew} */
+    let ret;
+    if (privacy) {
+        ret = (await luoguDB.get(key)) ?? { passed: [], submitted: [] };
+        ret.name = user.name;
+        ret.privacy = privacy;
+        addLGProfile(uid, user.name, privacy);
+    } else {
+        ret = {
+            passed, submitted,
+            name: user.name,
+            privacy: privacy ?? false
+        }
+        addLGPractice(uid, ret);
+    }
+    await luoguDB.set(key, ret, duration !== null ? Date.now() + duration : null);
+    return uid;
+}
+/**
  * @param {number} uid
  * @param {number | null} duration
  */
@@ -326,23 +376,7 @@ async function crawlLuogu(uid, duration = null) {
     try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(data, "text/html");
-        const content = JSON.parse(doc.getElementById("lentille-context").textContent);
-        const { passed, submitted, user, privacy } = content.data;
-        /** @type {LuoguPracticeNew} */
-        let ret;
-        if (privacy) {
-            ret = (await luoguDB.get(key)) ?? { passed: [], submitted: [] };
-            ret.name = user.name;
-            ret.privacy = privacy;
-        } else {
-            ret = {
-                passed, submitted,
-                name: user.name,
-                privacy: privacy ?? false
-            }
-            addLGPractice(uid, ret);
-        }
-        await luoguDB.set(key, ret, duration !== null ? Date.now() + duration : null);
+        await handleLuogu(doc.getElementById("lentille-context").textContent, uid, key, duration);
     } catch (err) {
         error(err);
         await luoguDB.setExpiration(key, Date.now() + INTERNAL_ERROR_GAP);
@@ -608,8 +642,8 @@ async function mainloop() {
         cfDone = 0;
         atDone = 0;
         promises.push(updateCodeforcesProblemset());
-        const lg = [];
         if (luoguPermission) {
+            const lg = [];
             for (const uid of lgUIDs) {
                 let ex = await luoguDB.getExpiration(luoguKey(uid));
                 const d = luoguDuration(uid);
@@ -718,6 +752,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "stop-crawl":
             luoguPermission = false;
             break;
+        case "fuck-you-lg": {
+            handleLuogu(data).then(uid => log(`handleLuogu ${uid}`), err => { });
+            break;
+        }
         case "is-ready":
             chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });
             break;

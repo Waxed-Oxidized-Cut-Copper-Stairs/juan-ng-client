@@ -136,6 +136,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }, err => error(err));
             break;
         }
+        case "fuck-you-lg": {
+            offscreenReady.then(() => {
+                chrome.runtime.sendMessage({ dst: "offscreen", type, data }).catch(err => null);
+            }, err => error(err));
+            break;
+        }
         case "offscreen-ready":
             break;
         default: {

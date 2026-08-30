@@ -427,6 +427,10 @@ function App() {
         const url = new URL(location.href);
         if (url.hostname === "www.luogu.com.cn" ||
             url.hostname === "www.luogu.com") {
+            const node = document.getElementById("lentille-context");
+            if (node) {
+                chrome.runtime.sendMessage({ dst: "sw", type: "fuck-you-lg", data: node.textContent });
+            }
             guard();
             guardTable();
             const unload = subscribe("route", () => {

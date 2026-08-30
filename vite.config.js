@@ -61,13 +61,31 @@ function generateManifestPlugin() {
                         ],
                         js: ["content-wrapper.js"],
                         css: ["style.css"]
+                    },
+                    {
+                        matches: [
+                            "https://www.luogu.com.cn/*",
+                            "https://www.luogu.com/*"
+                        ],
+                        js: ["hook.js"],
+                        world: "MAIN",
+                        run_at: "document_start",
+                    },
+                    {
+                        matches: [
+                            "https://www.luogu.com.cn/*",
+                            "https://www.luogu.com/*"
+                        ],
+                        js: ["bridge.js"],
+                        run_at: "document_start",
                     }
                 ],
                 web_accessible_resources: [
                     {
                         "resources": [
                             "assets/*",
-                            "content.js"
+                            "content.js",
+                            "hook.js"
                         ],
                         "matches": [
                             "<all_urls>"
@@ -107,10 +125,14 @@ export default defineConfig({
                 offscreen: resolve(import.meta.dirname, "offscreen.html"),
                 content: resolve(import.meta.dirname, "src/content.jsx"),
                 "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
+                bridge: resolve(import.meta.dirname, "src/bridge.js"),
+                hook: resolve(import.meta.dirname, "src/hook.js"),
             },
             output: {
                 entryFileNames: (chunkInfo) => {
                     if (chunkInfo.name === "content") return "content.js";
+                    if (chunkInfo.name === "bridge") return "bridge.js";
+                    if (chunkInfo.name === "hook") return "hook.js";
                     if (chunkInfo.name === "service-worker") return "service-worker.js";
                     return "assets/[name].[hash].js";
                 },
