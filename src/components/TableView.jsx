@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, Username } from "./Generic";
+import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, getURL, LightAnchor, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
 import { acquireAllUserProfile, acquireOrigin, acquireProblem, acquireUID, subscribe } from "../protocol_v2";
 
@@ -19,7 +19,9 @@ function HeaderView({ problems, ref }) {
                             <div>{problem.pid} {problem.name}</div>
                         </FloatDiv>
                         <FloatDivBinding className={styles.header_cell}>
-                            {problem.pid}
+                            <LightAnchor href={getURL(problem.pid) ?? undefined} className={styles.inner_header}>
+                                {problem.pid}
+                            </LightAnchor>
                         </FloatDivBinding>
                     </FloatDivContainer>
                 )
@@ -77,10 +79,13 @@ function RowView({ account, problems, origins }) {
                 const sty = situation.passed.has(uid) ? styles.passed :
                     situation.submitted.has(uid) ? styles.submitted : "";
                 return (
-                    <div key={problem.pid} className={`${styles.cell} ${sty}`.trim()}>
-                        <OriginAnchor account={account} pid={problem.pid} origin={origins.get(problem.pid) ?? { passed: new Map(), submitted: new Map() }}>
-                            <div className={`${styles.inner_cell} ${sty}`.trim()}>{text}</div>
-                        </OriginAnchor>
+                    <div key={problem.pid} className={styles.cell}>
+                        <OriginAnchor
+                            account={account}
+                            pid={problem.pid}
+                            origin={origins.get(problem.pid) ?? { passed: new Map(), submitted: new Map() }}
+                            className={`${styles.inner_cell} ${sty}`.trim()}
+                        >{text}</OriginAnchor>
                     </div>
                 )
             })}

@@ -44,6 +44,7 @@ export function percentToString(p, q) {
     return `${(p / q * 100).toFixed(0)}%`;
 }
 
+/** @param {string | null} [href] */
 export function getPid(href = null) {
     const url = href ?? (new URL(location.href, "https://www.luogu.com.cn"));
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
@@ -59,6 +60,13 @@ export function getPid(href = null) {
         if (url.pathname.startsWith("/problemnew/show/")) {
             return url.pathname.split("/").filter(Boolean).at(-1);
         }
+    }
+    return null;
+}
+/** @param {string} pid */
+export function getURL(pid) {
+    if (pid.startsWith("P") || pid.startsWith("B") || pid.startsWith("CF") || pid.startsWith("AT_")) {
+        return `https://www.luogu.com.cn/problem/${pid}`;
     }
     return null;
 }
@@ -79,10 +87,20 @@ export function ShadowRoot({ children }) {
 }
 
 export function Anchor({ children, href, ...rest }) {
-    return <a className={styles.anchor} href={href} target="_blank" {...rest}>{children}</a>
+    let cls = styles.anchor;
+    if (rest.className) {
+        cls += " " + rest.className;
+        delete rest.className;
+    }
+    return <a className={cls} href={href} target="_blank" {...rest}>{children}</a>
 }
 export function LightAnchor({ children, href, ...rest }) {
-    return <a className={`${styles.anchor} ${styles.light}`} href={href} target="_blank" {...rest}>{children}</a>
+    let cls = `${styles.anchor} ${styles.light}`;
+    if (rest.className) {
+        cls += " " + rest.className;
+        delete rest.className;
+    }
+    return <a className={cls} href={href} target="_blank" {...rest}>{children}</a>
 }
 export function Button({ children, onClick, confirm = null, ...rest }) {
     return <button
@@ -136,7 +154,7 @@ export function Username({ account, profile, ...rest }) {
  * @param {string} options.pid
  * @param {Origin} options.origin
  */
-export function OriginAnchor({ children, account, pid, origin }) {
+export function OriginAnchor({ children, account, pid, origin, ...rest }) {
     const [url, setUrl] = useState("");
     const uid = account.luogu;
     useEffect(() => {
@@ -163,7 +181,7 @@ export function OriginAnchor({ children, account, pid, origin }) {
             setUrl(null);
         }
     }, [uid, pid, origin]);
-    return <Anchor href={url || undefined}>{children}</Anchor>
+    return <Anchor href={url || undefined} {...rest}>{children}</Anchor>
 }
 
 /**

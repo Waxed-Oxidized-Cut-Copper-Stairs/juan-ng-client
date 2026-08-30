@@ -39,35 +39,16 @@
     display: inline-block;
     vertical-align: top;
     margin: 1px;
-    border: 1px solid var(--fog);
-    border-radius: 3px;
     width: var(--cell-width);
     height: var(--cell-height);
-    text-align: center;
-}
-
-.cell:hover {
-    filter: var(--filter-lv2);
 }
 
 .header_cell {
     display: inline-block;
     vertical-align: top;
     margin: 1px;
-    padding: 3px 8px;
-    border: 1px solid transparent;
-    border-radius: 3px;
     width: var(--cell-width);
     height: var(--cell-height);
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-align: center;
-    text-overflow: ellipsis;
-}
-
-.header_cell:hover {
-    border-color: var(--fog);
 }
 
 .title_cell {
@@ -96,8 +77,37 @@
 }
 
 .inner_cell {
-    width: calc(var(--cell-width) - 2px);
-    height: calc(var(--cell-height) - 2px);
+    display: inline-block;
+    border: 1px solid var(--fog);
+    border-radius: 3px;
+    width: var(--cell-width);
+    height: var(--cell-height);
+    text-align: center;
+    transition: filter 0.1s ease-in-out;
+}
+
+.inner_cell:hover {
+    filter: var(--filter-lv2);
+}
+
+.inner_header {
+    display: inline-block;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    padding: 3px 8px;
+    width: var(--cell-width);
+    height: var(--cell-height);
+    font-size: 14px;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    transition: filter 0.1s ease-in-out;
+}
+
+.inner_header:hover {
+    border-color: var(--fog);
 }
 
 .special_cell {
