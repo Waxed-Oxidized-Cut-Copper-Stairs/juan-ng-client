@@ -65,7 +65,6 @@ function generateManifestPlugin() {
                 web_accessible_resources: [
                     {
                         "resources": [
-                            "lib/*",
                             "assets/*",
                             "content.js"
                         ],
