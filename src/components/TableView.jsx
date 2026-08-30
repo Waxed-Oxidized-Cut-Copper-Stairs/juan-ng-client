@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
-import { acquireAllUserProfile, acquireOrigin, acquireProblem, subscribe } from "../protocol_v2";
+import { acquireAllUserProfile, acquireOrigin, acquireProblem, acquireUID, subscribe } from "../protocol_v2";
 
 /**
  * @param {Object} options
@@ -33,19 +33,26 @@ function HeaderView({ problems, ref }) {
  * @param {Account[]} options.users
  * @param {Map<number, LuoguProfileNew>} options.profiles
  * @param {Map<number, number>} options.count
+ * @param {number | null} options.myUid
  */
-function TitleView({ users, profiles, count }) {
+function TitleView({ users, profiles, count, myUid }) {
     return (
         <div className={styles.title}>
-            <div className={styles.special_cell} />
+            <div className={styles.title_cell}>
+                <div className={styles.title_cell_left}>用户名</div>
+                <div className={styles.title_cell_right}>通过数</div>
+            </div>
             {users.map((account) => {
                 const uid = account.luogu;
                 return (
-                    <div key={uid} className={`${styles.title_cell} ${profiles.get(uid)?.privacy ? styles.privacy : ""}`.trim()}>
+                    <div key={uid} className={`${styles.title_cell} ${profiles.get(uid)?.privacy ? styles.privacy : ""} ${myUid === uid ? styles.myself : ""}`.trim()}>
                         <div className={styles.title_cell_left}>
                             <Username account={account} profile={profiles.get(uid) ?? {}} />
                         </div>
-                        <div className={styles.title_cell_right}>{count.get(uid) ?? -1}</div>
+                        <div className={styles.title_cell_mid} />
+                        <div className={styles.title_cell_right}>
+                            {count.get(uid) ?? -1}
+                        </div>
                     </div>
                 )
             })}
@@ -63,15 +70,17 @@ function RowView({ account, problems, origins }) {
     return (
         <div>
             {problems.map(({ problem, situation }) => {
+                const uid = account.luogu;
+                const text = situation.passed.has(uid) ? "✓" :
+                    situation.submitted.has(uid) ? "✗" : "";
+                const sty = situation.passed.has(uid) ? styles.passed :
+                    situation.submitted.has(uid) ? styles.submitted : "";
                 return (
-                    <OriginAnchor key={problem.pid} account={account} pid={problem.pid} origin={origins.get(problem.pid) ?? { passed: new Map(), submitted: new Map() }}>
-                        <div className={styles.cell}>
-                            <div className={styles.inner_cell}>
-                                {situation.submitted.has(account.luogu) && !situation.passed.has(account.luogu) && <div className={styles.submitted}>✗</div>}
-                                {situation.passed.has(account.luogu) && <div className={styles.passed}>✓</div>}
-                            </div>
-                        </div>
-                    </OriginAnchor>
+                    <div key={problem.pid} className={`${styles.cell} ${sty}`.trim()}>
+                        <OriginAnchor account={account} pid={problem.pid} origin={origins.get(problem.pid) ?? { passed: new Map(), submitted: new Map() }}>
+                            <div className={`${styles.inner_cell} ${sty}`.trim()}>{text}</div>
+                        </OriginAnchor>
+                    </div>
                 )
             })}
         </div>
@@ -89,6 +98,7 @@ export default function TableView({ users, problems }) {
     const [order, setOrder] = useState([]);
     const [origins, setOrigins] = useState(new Map());
     const [count, setCount] = useState(new Map());
+    const [myUid, setMyUid] = useState(0);
     const mountedRef = useRef(null);
     const headerRef = useRef(null);
     const headerBakRef = useRef(null);
@@ -187,10 +197,15 @@ export default function TableView({ users, problems }) {
             unload2();
         };
     }, [users, problems, update, updateProfile, updateOrigin, updateScroll]);
+    useEffect(() => {
+        acquireUID().then(uid => {
+            if (uid) setMyUid(uid);
+        });
+    }, []);
     return (
         <div ref={mountedRef}>
             <div className={styles.table}>
-                <TitleView users={order} profiles={profiles} count={count} />
+                <TitleView users={order} profiles={profiles} count={count} myUid={myUid} />
                 <div ref={bodyRef} className={styles.body} onScroll={() => updateScroll()}>
                     <HeaderView ref={headerRef} problems={problems} />
                     {order.map((account) => {

@@ -1,7 +1,13 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
 .table {
+    --cell-width: 80px;
+    --cell-height: 30px;
     display: flex;
+}
+
+.table * {
+    box-sizing: border-box;
 }
 
 .title {
@@ -17,7 +23,6 @@
     white-space: nowrap;
 }
 
-
 .mask {
     background-color: var(--background);
     position: fixed;
@@ -30,80 +35,87 @@
     overflow: auto;
 }
 
-.cell,
-.title_cell,
-.header_cell,
-.title_sub_cell,
-.special_cell {
-    box-sizing: border-box;
+.cell {
+    display: inline-block;
+    vertical-align: top;
+    margin: 1px;
+    border: 1px solid var(--fog);
+    border-radius: 3px;
+    width: var(--cell-width);
+    height: var(--cell-height);
     text-align: center;
 }
 
-.cell,
-.title_cell {
-    border-top: 1px solid var(--fog);
-    height: 30px;
-}
-
-.cell,
 .header_cell {
     display: inline-block;
     vertical-align: top;
-    width: 80px;
-}
-
-.header_cell {
-    border-bottom: 1px solid var(--fog);
+    margin: 1px;
     padding: 3px 8px;
-    height: 30px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    width: var(--cell-width);
+    height: var(--cell-height);
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
+    text-align: center;
     text-overflow: ellipsis;
+}
+
+.header_cell:hover {
+    border-color: var(--fog);
 }
 
 .title_cell {
     display: flex;
+    padding: 1px;
+    height: calc(var(--cell-height) + 2px);
+    text-align: center;
 }
 
 .title_cell_left {
     flex: 1;
-    border-right: 1px solid var(--fog);
     padding: 0 8px;
     overflow: hidden;
     white-space: nowrap;
 }
 
-.title_cell_right {
-    width: 80px;
+.title_cell_mid {
+    width: 1px;
+    height: calc(var(--cell-height) + 2px);
+    margin: -1px 0;
+    background-color: var(--fog);
 }
 
-.special_cell {
-    background-color: var(--background);
-    border-bottom: 1px solid var(--fog);
-    height: 30px;
+.title_cell_right {
+    width: var(--cell-width);
 }
 
 .inner_cell {
-    width: 80px;
-    height: 29px;
+    width: calc(var(--cell-width) - 2px);
+    height: calc(var(--cell-height) - 2px);
 }
 
-.inner_cell:hover {
-    border-left: 1px solid var(--fog);
-    border-right: 1px solid var(--fog);
-    border-bottom: 1px solid var(--fog);
-    width: 78px;
+.cell:hover {
+    filter: var(--filter-lv2);
 }
 
 .passed {
     color: var(--green);
+    border-color: var(--light-green);
+    background-color: var(--light-green);
 }
 
 .submitted {
     color: var(--red);
+    border-color: var(--light-red);
+    background-color: var(--light-red);
 }
 
 .privacy {
-    background-color: var(--haze);
+    background-color: var(--fog);
+}
+
+.myself {
+    background-color: var(--light-green);
 }
