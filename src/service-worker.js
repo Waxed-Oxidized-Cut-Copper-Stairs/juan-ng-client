@@ -2,7 +2,16 @@
 
 import { error, warning } from "./lib/core.js";
 
-const offscreenReady = (async () => {
+let luoguPermission = false;
+let luoguPermissionLock = Promise.resolve();
+
+const storageReady = chrome.storage.local.get("luogu-permission").then(ret => {
+    luoguPermission = ret["luogu-permission"] ?? false;
+    console.log("Read storage:");
+    console.log(`+ luoguPermission: ${luoguPermission}`);
+});
+
+const offscreenReady = storageReady.then(async () => {
     if (await chrome.offscreen.hasDocument()) return;
     await chrome.offscreen.createDocument({
         url: "offscreen.html",
@@ -26,7 +35,8 @@ const offscreenReady = (async () => {
     });
     chrome.runtime.sendMessage({ dst: "offscreen", type: "is-ready" });
     await promise;
-})();
+    chrome.runtime.sendMessage({ dst: "offscreen", type: (luoguPermission ? "start-crawl" : "stop-crawl") });
+});
 
 /**
  * @param {Promise} promise
@@ -39,6 +49,14 @@ async function sendResponseWrapper(promise, sendResponse) {
         catch (err) { error("无法发送响应", err); }
     });
 }
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes["luogu-permission"]) {
+        const newVal = changes["luogu-permission"].newValue ?? false;
+        luoguPermission = newVal;
+        chrome.runtime.sendMessage({ dst: "offscreen", type: newVal ? "start-crawl" : "stop-crawl" });
+    }
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
@@ -96,6 +114,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
             break;
         }
+        case "start-crawl":
+            luoguPermissionLock = luoguPermissionLock.then(async () => {
+                luoguPermission = true;
+                await chrome.storage.local.set({ "luogu-permission": true });
+            }).catch(err => error(err));
+            break;
+        case "stop-crawl":
+            luoguPermissionLock = luoguPermissionLock.then(async () => {
+                luoguPermission = false;
+                await chrome.storage.local.set({ "luogu-permission": false });
+            }).catch(err => error(err));
+            break;
+        case "query-crawl":
+            sendResponse(luoguPermission);
+            break;
         case "flush-cache":
         case "flush-specific-cache": {
             offscreenReady.then(() => {

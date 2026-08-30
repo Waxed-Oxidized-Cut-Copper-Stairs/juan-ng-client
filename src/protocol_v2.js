@@ -141,6 +141,17 @@ export function flushSpecificCache(accounts, domains = null) {
     errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "flush-specific-cache", data: { accounts, domains } }));
 }
 
+export function startCrawlLuogu() {
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "start-crawl" }));
+}
+export function stopCrawlLuogu() {
+    errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "stop-crawl" }));
+}
+/** @returns {Promise<boolean>} */
+export async function isCrawlLuoguPermitted() {
+    return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-crawl" })));
+}
+
 /** @type {Map<string, Set<(data: any) => void>>} */
 const subscription = new Map();
 /**

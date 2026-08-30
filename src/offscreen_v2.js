@@ -2,7 +2,7 @@
 
 console.log("离屏页面 >w<");
 
-import { sleep } from "./lib/asyncio.js";
+import { Lock, sleep } from "./lib/asyncio.js";
 import { error, log } from "./lib/core.js";
 import { CacheDB } from "./lib/database.js";
 import { randint, shuffle } from "./lib/random.js";
@@ -11,6 +11,7 @@ const proxyURL = "http://127.0.0.1:6969";
 log(`服务端地址 ${proxyURL}`);
 
 const CODEFORCES_PROBLEMSET_GAP = 7 * 24 * 60 * 60 * 1000;
+const LUOGU_PERMISSION_GAP = 12 * 60 * 60 * 1000;
 const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
@@ -43,6 +44,8 @@ const tempListener = (message, sender, sendResponse) => {
     }
 };
 chrome.runtime.onMessage.addListener(tempListener);
+
+let luoguPermission = false;
 
 /** @type {Group[]}} */
 const users = await (async () => {
@@ -287,6 +290,10 @@ let luoguLock = sleep(60 * 1000);
 async function crawlLuogu(uid, duration = null) {
     const key = luoguKey(uid);
     const nxt = luoguLock.then(async () => {
+        if (!luoguPermission) {
+            await luoguDB.setExpiration(key, Date.now() + LUOGU_PERMISSION_GAP);
+            return;
+        }
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
         log(`fetchProxy ${url}`);
         let resp;
@@ -311,7 +318,9 @@ async function crawlLuogu(uid, duration = null) {
         }
         return await resp.text();
     });
-    luoguLock = nxt.finally(() => sleep(randint(60 * 1000, 5 * 60 * 1000))).catch(() => { });
+    luoguLock = nxt.finally(() => {
+        if (luoguPermission) sleep(randint(60 * 1000, 5 * 60 * 1000));
+    }).catch(() => { });
     const data = await nxt;
     if (!data) return;
     try {
@@ -600,18 +609,20 @@ async function mainloop() {
         atDone = 0;
         promises.push(updateCodeforcesProblemset());
         const lg = [];
-        for (const uid of lgUIDs) {
-            let ex = await luoguDB.getExpiration(luoguKey(uid));
-            const d = luoguDuration(uid);
-            // 处理 pri 变化
-            if (ex === null && d) {
-                await luoguDB.expire(luoguKey(uid));
-                ex = 0;
+        if (luoguPermission) {
+            for (const uid of lgUIDs) {
+                let ex = await luoguDB.getExpiration(luoguKey(uid));
+                const d = luoguDuration(uid);
+                // 处理 pri 变化
+                if (ex === null && d) {
+                    await luoguDB.expire(luoguKey(uid));
+                    ex = 0;
+                }
+                if (ex === null || ex > Date.now()) ++lgDone;
+                else lg.push([uid, d]);
             }
-            if (ex === null || ex > Date.now()) ++lgDone;
-            else lg.push([uid, d]);
+            shuffle(lg);
         }
-        shuffle(lg);
         for (const [uid, d] of lg) {
             promises.push(crawlLuogu(uid, d)
                 .catch(err => {
@@ -698,6 +709,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "flush-specific-cache":
             flushSpecificCache(data.accounts, data.domains).then(() => mainloop());
+            break;
+        case "start-crawl":
+            luoguPermission = true;
+            break;
+        case "stop-crawl":
+            luoguPermission = false;
             break;
         case "is-ready":
             chrome.runtime.sendMessage({ dst: "sw", type: "offscreen-ready" });

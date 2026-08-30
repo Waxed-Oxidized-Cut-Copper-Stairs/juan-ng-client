@@ -1,14 +1,38 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { StrictMode } from "react";
+import { StrictMode, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { flushCache } from "./protocol_v2.js";
+import { flushCache, isCrawlLuoguPermitted, startCrawlLuogu, stopCrawlLuogu } from "./protocol_v2.js";
 import { Anchor, Button, LightAnchor } from "./components/Generic";
 import styles from "./popup.module.css";
 
 const versionName = `${__JUAN_VERSION__} (${__COMMIT_HASH__})`;
 
 export default function Popup() {
+    const luoguPermissionRef = useRef(null);
+    const updateStatus = useCallback(() => {
+        isCrawlLuoguPermitted().then(ret => {
+            /** @type {HTMLSpanElement} */
+            const node = luoguPermissionRef.current;
+            if (!node) return;
+            if (ret) {
+                node.style.color = "var(--green)";
+                node.textContent = "允许";
+            } else {
+                node.style.color = "var(--red)";
+                node.textContent = "禁止";
+            }
+        });
+    }, []);
+    useEffect(() => {
+        updateStatus();
+        const id = setInterval(() => {
+            updateStatus();
+        }, 1000);
+        return () => {
+            clearInterval(id);
+        }
+    }, []);
     return (
         <>
             <header className={styles.header}>
@@ -28,7 +52,17 @@ export default function Popup() {
                     </div>
                 </div>
                 <div>
+                    爬取洛谷通过情况：
+                    <Button onClick={() => { startCrawlLuogu(); setTimeout(() => updateStatus(), 100); }}>允许</Button>
+                    <Button onClick={() => { stopCrawlLuogu(); setTimeout(() => updateStatus(), 100); }}>禁止</Button>
+                    <br />
+                    当前状态：
+                    <span ref={luoguPermissionRef} className={styles.luoguPermissionStatus} />
+                </div>
+                <div>
                     本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。
+                    <br />
+                    插件采用必要的技术方法减轻对目标网站造成的负担，滥用导致的损害需要用户自行负责。
                     <br />
                     数据来源：
                     <ul>

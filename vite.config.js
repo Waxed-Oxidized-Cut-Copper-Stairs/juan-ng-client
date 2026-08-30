@@ -33,6 +33,7 @@ function generateManifestPlugin() {
                     "cookies",
                     "notifications",
                     "offscreen",
+                    "storage",
                     "tabs",
                     "webNavigation"
                 ],
