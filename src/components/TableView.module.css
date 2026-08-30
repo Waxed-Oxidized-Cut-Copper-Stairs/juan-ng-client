@@ -46,6 +46,10 @@
     text-align: center;
 }
 
+.cell:hover {
+    filter: var(--filter-lv2);
+}
+
 .header_cell {
     display: inline-block;
     vertical-align: top;
@@ -96,8 +100,16 @@
     height: calc(var(--cell-height) - 2px);
 }
 
-.cell:hover {
-    filter: var(--filter-lv2);
+.special_cell {
+    font-size: 14px;
+    height: calc(var(--cell-height) + 2px);
+    border-bottom: 1px solid var(--fog);
+}
+
+.special_cell>.title_cell_left,
+.special_cell>.title_cell_right {
+    padding-top: 4px;
+    padding-bottom: 3px;
 }
 
 .passed {

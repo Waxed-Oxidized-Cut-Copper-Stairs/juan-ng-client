@@ -38,8 +38,9 @@ function HeaderView({ problems, ref }) {
 function TitleView({ users, profiles, count, myUid }) {
     return (
         <div className={styles.title}>
-            <div className={styles.title_cell}>
+            <div className={`${styles.title_cell} ${styles.special_cell}`}>
                 <div className={styles.title_cell_left}>用户名</div>
+                <div className={styles.title_cell_mid} />
                 <div className={styles.title_cell_right}>通过数</div>
             </div>
             {users.map((account) => {
