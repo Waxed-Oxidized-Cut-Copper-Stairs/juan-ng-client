@@ -8,10 +8,6 @@
     margin-top: 12px;
 }
 
-.operation>:not(:last-child) {
-    margin-bottom: 3px;
-}
-
 .footer {
     margin-top: 12px;
 }
@@ -22,5 +18,23 @@
 }
 
 .luoguPermissionStatus {
+    font-weight: bold;
+}
+
+.outdated_list {
+    color: var(--light-text);
+}
+
+.outdated_list>span:not(:last-child)::after {
+    content: ", ";
+}
+
+.ok {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.bad {
+    color: var(--red);
     font-weight: bold;
 }
