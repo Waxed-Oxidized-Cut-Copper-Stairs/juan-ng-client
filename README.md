@@ -2,13 +2,13 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机客户端
 
-*Last Update：2026-08-30*
+*Last Update：2026-08-31*
 
 > 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
 >
 > 例外：本 README 文件在 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 协议下发布。
 
-需要与服务端 [juan-ng-server](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server) 配套使用。
+需要与次版本号相同的服务端 [juan-ng-server](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server) 配套使用。
 
 Firefox 无法使用此插件，因为它不支持 Service Worker。
 
@@ -22,7 +22,15 @@ Firefox 无法使用此插件，因为它不支持 Service Worker。
 
 ## 技术简介
 
-客户端是按 Manifest V3 标准编写的浏览器扩展，有 content、popup、Service Worker、offscreen 四个部分。
+客户端是按 Manifest V3 标准编写的浏览器扩展，由以下几个部分组成：
+
+- 注入脚本
+  - content.js 用于呈现内容，包括侧栏卡片、弹出框、题单练习情况表格等
+  - hook.js 在文档创建时加载，负责在用户访问洛谷用户练习页面时把页面数据添加进数据库，实现半自动更新数据
+  - bridge.js 在文档创建时加载，用作 hook.js 与后端的桥
+- 弹出页面用于查看和修改脚本设置
+- Service Worker 用于前后端交换数据，管理浏览器 API 调用等
+- 离屏文档用于读取、整理和自动更新练习数据
 
 客户端会从服务端拉取需要爬取的用户数据，并把到洛谷网站的请求通过服务端转发。
 
