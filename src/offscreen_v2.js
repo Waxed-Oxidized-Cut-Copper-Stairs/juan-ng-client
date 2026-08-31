@@ -2,7 +2,7 @@
 
 console.log("离屏页面 >w<");
 
-import { Lock, sleep } from "./lib/asyncio.js";
+import { sleep } from "./lib/asyncio.js";
 import { error, log } from "./lib/core.js";
 import { CacheDB } from "./lib/database.js";
 import { randint, shuffle } from "./lib/random.js";
@@ -11,7 +11,6 @@ const proxyURL = "http://127.0.0.1:6969";
 log(`服务端地址 ${proxyURL}`);
 
 const CODEFORCES_PROBLEMSET_GAP = 7 * 24 * 60 * 60 * 1000;
-const LUOGU_PERMISSION_GAP = 12 * 60 * 60 * 1000;
 const FETCH_ERROR_GAP = 12 * 60 * 60 * 1000;
 const CLIENT_ERROR_GAP = 12 * 60 * 60 * 1000;
 const SERVER_ERROR_GAP = 6 * 60 * 60 * 1000;
@@ -55,8 +54,11 @@ const users = await (async () => {
     }
     return await resp.json();
 })();
+/** @type {number[]} */
 const lgUIDs = [];
+/** @type {string[]} */
 const cfHandles = [];
+/** @type {string[]} */
 const atHandles = [];
 /** @type {Map<string, number>} */
 const cfHandleMap = new Map();
@@ -341,7 +343,6 @@ async function crawlLuogu(uid, duration = null) {
     const key = luoguKey(uid);
     const nxt = luoguLock.then(async () => {
         if (!luoguPermission) {
-            await luoguDB.setExpiration(key, Date.now() + LUOGU_PERMISSION_GAP);
             return;
         }
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
@@ -740,6 +741,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "query-progress":
             sendResponse({ done: lasLgDone + lasCfDone + lasAtDone, total: lgUIDs.length + cfHandles.length + atHandles.length });
             break;
+        case "query-outline":
+            (async () => {
+                // await luoguDB.outdatedKeys();
+                const outdated = [];
+                for (const uid of lgUIDs) {
+                    if (!(await luoguDB.satisfied(luoguKey(uid)))) {
+                        outdated.push(uid);
+                    }
+                }
+                return {
+                    luogu: {
+                        count: lgUIDs.length,
+                        crawled: lasLgDone,
+                        outdated
+                    },
+                    codeforces: {
+                        count: cfHandles.length,
+                        crawled: lasCfDone
+                    },
+                    atcoder: {
+                        count: atHandles.length,
+                        crawled: lasAtDone
+                    }
+                }
+            })().then(async resp => {
+                sendResponse(resp);
+            }, sendResponse);
+            return true;
         case "flush-cache":
             flushCache(data).then(() => mainloop());
             break;
@@ -748,6 +777,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "start-crawl":
             luoguPermission = true;
+            mainloop();
             break;
         case "stop-crawl":
             luoguPermission = false;

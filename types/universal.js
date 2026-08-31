@@ -18,3 +18,21 @@
  *   submitted: Map<number, [string, string | number]>
  * }} Origin
  */
+
+/**
+ * @typedef {{
+ *   luogu: {
+ *     count: number,
+ *     crawled: number,
+ *     outdated: number[]
+ *   },
+ *   codeforces: {
+ *     count: number,
+ *     crawled: number
+ *   },
+ *   atcoder: {
+ *     count: number,
+ *     crawled: number
+ *   }
+ * }} DBOutline
+ */

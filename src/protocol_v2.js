@@ -111,6 +111,11 @@ async function acquireProgress() {
     return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-progress" })));
 }
 
+/** @returns {Promise<DBOutline | null>} */
+async function acquireOutline() {
+    return timeoutWrapper(errorWrapper(() => chrome.runtime.sendMessage({ dst: "sw", type: "query-outline" })));
+}
+
 let cachedUID = null;
 let cachedUIDLastUpdate = 0;
 /** @returns {Promise<number | null>} */
@@ -211,4 +216,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-export { acquireProblem, acquireOrigin, acquireUserProfile, acquireAllUserProfile, acquireProgress, acquireUID }
+export { acquireProblem, acquireOrigin, acquireUserProfile, acquireAllUserProfile, acquireProgress, acquireOutline, acquireUID }
