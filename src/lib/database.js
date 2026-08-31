@@ -238,6 +238,29 @@ class CacheDB {
             throw new DBError("数据库异常", { cause: err });
         }
     }
+    /** @returns {Promise<string[]>} */
+    async outdatedKeys() {
+        try {
+            const transaction = this.db.transaction(this.timestampkey, "readonly");
+            const store = transaction.objectStore(this.timestampkey);
+            const request = store.openCursor();
+            const outdated = [];
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const value = cursor.value;
+                    if (value !== null && typeof value === "number" && value <= Date.now()) {
+                        outdated.push(cursor.key);
+                    }
+                    cursor.continue();
+                }
+            };
+            await transactionWrapper(transaction);
+            return outdated;
+        } catch (err) {
+            throw new DBError("数据库异常", { cause: err });
+        }
+    }
     close() {
         this.db.close();
     }
