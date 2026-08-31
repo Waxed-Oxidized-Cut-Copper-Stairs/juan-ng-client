@@ -9,6 +9,10 @@
     background-color: transparent;
 }
 
+.xroot[theme="dark"] {
+    @include shared.dark-theme;
+}
+
 .xcard {
     background-color: var(--background);
     border-radius: 4px;

@@ -17,6 +17,7 @@ import cssText4 from "./components/StatusBar.module.css?inline";
 import cssText5 from "./components/TableView.module.css?inline";
 import TableView from "./components/TableView.jsx";
 import { OnlineStatusBar } from "./components/StatusBar.jsx";
+import { registerRoot } from "./lib/darktheme.js";
 
 const cssText = cssText1 + cssText2 + cssText3 + cssText4 + cssText5;
 
@@ -121,6 +122,13 @@ function DropBox() {
             }
         })();
     }, [pid]);
+    useEffect(() => {
+        // if (!dropboxRef.current) return;
+        // const unload = registerRoot(dropboxRef.current);
+        // return () => {
+        //     unload();
+        // }
+    }, []);
     useLayoutEffect(() => {
         if (!visible || !dropboxRef.current || !current) return;
         const node = current;
@@ -188,7 +196,7 @@ function DropBox() {
         };
     }, [visible, current]);
     return (
-        <ShadowRoot>
+        <>
             <StyleSheetLoader />
             <FadeAnimation visible={visible} jumpin={true}>
                 <div
@@ -213,15 +221,23 @@ function DropBox() {
                     </div>
                 </div>
             </FadeAnimation>
-        </ShadowRoot>
+        </>
     );
 }
 
 function Card({ pid }) {
+    const cardRef = useRef(null);
+    useEffect(() => {
+        // if (!cardRef.current) return;
+        // const unload = registerRoot(cardRef.current);
+        // return () => {
+        //     unload();
+        // }
+    }, []);
     return (
-        <ShadowRoot>
+        <>
             <StyleSheetLoader />
-            <div className={styles.xroot}>
+            <div ref={cardRef} className={styles.xroot}>
                 <div className={styles.xcard}>
                     <GroupView groups={users} pid={pid} verbose={true}>
                         <h3 className={styles.xh3}>卷王</h3>
@@ -246,7 +262,7 @@ function Card({ pid }) {
                     </div>
                 </div>
             </div>
-        </ShadowRoot>
+        </>
     )
 }
 
@@ -255,31 +271,35 @@ function Card({ pid }) {
  * @param {HTMLElement} options.element
  */
 function TrainingEntry({ element, setTrainingVisible }) {
+    const rootRef = useRef(null);
     useEffect(() => {
         const abort = new AbortController();
         const node = element.querySelector("ul");
         node.addEventListener("click", () => {
             setTrainingVisible(false);
         }, { signal: abort.signal });
+        // const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
+        const unload = () => { };
         return () => {
             abort.abort();
+            unload();
         }
     }, []);
     return (
-        <ShadowRoot styles={{ height: "100%" }}>
+        <>
             <StyleSheetLoader />
-            <div className={styles.xroot}>
+            <div ref={rootRef} className={styles.xroot}>
                 <div className={styles.xtrainingEntry} onClick={() => {
                     setTrainingVisible(true);
                 }}>排行榜</div>
             </div>
-        </ShadowRoot >
+        </ >
     )
 }
 function Training() {
     const [aim, setAim] = useState([]);
     const [items, setItems] = useState([]);
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState([-1, "所有选手"]);
     const [visible, setVisible] = useState(false);
     const [{ problems }] = useState(() => {
         const node = document.getElementById("lentille-context");
@@ -292,6 +312,7 @@ function Training() {
             return {};
         }
     });
+    const rootRef = useRef(null);
     useEffect(() => {
         /** @type {number} */
         const id = selected ? selected[0] : -1;
@@ -318,18 +339,21 @@ function Training() {
         const node = document.querySelector("main>.main-content");
         const old = node.style.display;
         node.style.display = "none";
+        // const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
+        const unload = () => { };
         return () => {
             node.style.display = old;
+            unload();
         }
     }, []);
     useLayoutEffect(() => {
         setVisible(true);
     }, []);
     return (
-        <ShadowRoot>
+        <>
             <StyleSheetLoader />
             <FadeAnimation visible={visible}>
-                <div className={styles.xroot}>
+                <div ref={rootRef} className={styles.xroot}>
                     <div className={styles.xtraining}>
                         <div className={styles.xtrainingCard}>
                             <div className={styles.xtrainingHeader}>
@@ -348,7 +372,7 @@ function Training() {
                     </div>
                 </div>
             </FadeAnimation>
-        </ShadowRoot>
+        </>
     )
 }
 
@@ -447,19 +471,19 @@ function App() {
     return (
         <>
             {sideElement && createPortal(
-                <Card pid={pid} />,
+                <ShadowRoot><Card pid={pid} /></ShadowRoot>,
                 sideElement
             )}
             {createPortal(
-                <DropBox />,
+                <ShadowRoot><DropBox /></ShadowRoot>,
                 document.body
             )}
             {trainingHeaderElement && createPortal(
-                <TrainingEntry element={trainingHeaderElement} setTrainingVisible={setTrainingVisible} />,
+                <ShadowRoot><TrainingEntry element={trainingHeaderElement} setTrainingVisible={setTrainingVisible} /></ShadowRoot>,
                 trainingHeaderElement
             )}
             {trainingVisible && trainingElement && createPortal(
-                <Training />,
+                <ShadowRoot><Training /></ShadowRoot>,
                 trainingElement
             )}
         </>

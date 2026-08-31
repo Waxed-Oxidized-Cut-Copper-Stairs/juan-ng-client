@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { flushCache, isCrawlLuoguPermitted, startCrawlLuogu, stopCrawlLuogu } from "./protocol_v2.js";
 import { Anchor, Button, LightAnchor } from "./components/Generic";
 import styles from "./popup.module.css";
+import { registerRoot } from "./lib/darktheme.js";
 
 const versionName = `${__JUAN_VERSION__} (${__COMMIT_HASH__})`;
 
@@ -90,3 +91,5 @@ createRoot(document.getElementById("app")).render(
         <Popup />
     </StrictMode>
 );
+
+registerRoot(document.documentElement);

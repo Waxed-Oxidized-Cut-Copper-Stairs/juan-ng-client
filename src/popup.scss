@@ -6,6 +6,10 @@
     @include shared.base-theme;
 }
 
+:root[theme="dark"] {
+    @include shared.dark-theme;
+}
+
 body {
     font-size: 0.875em;
     width: 400px;
@@ -15,5 +19,5 @@ body {
 }
 
 ul {
-    margin: 8px 0;
+    margin: 3px 0;
 }
