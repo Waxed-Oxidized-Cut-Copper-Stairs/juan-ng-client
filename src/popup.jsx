@@ -93,7 +93,7 @@ function DatabaseOutline() {
                 <ul>
                     <li>
                         <div>
-                            洛谷：<OutlineText crawled={outline.luogu.crawled} count={outline.luogu.count} />
+                            洛谷：<OutlineText crawled={Math.min(outline.luogu.crawled, outline.luogu.count - outdated.length)} count={outline.luogu.count} />
                         </div>
                         <div>
                             {outdated.length ? (
