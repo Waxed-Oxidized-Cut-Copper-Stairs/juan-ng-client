@@ -146,11 +146,12 @@ export function ComboBox({ items, selected, setSelected }) {
  * @param {Object} options
  * @param {Account} options.account
  * @param {LuoguProfileNew} options.profile
+ * @param {boolean} options.displayStar
  */
-export function Username({ account, profile, ...rest }) {
+export function Username({ account, profile, displayStar = true, ...rest }) {
     const uid = account.luogu;
     return (
-        <span {...rest}>{profile.name ?? `uid:${uid}`}{account.star > 0 && "🌟"}</span>
+        <span {...rest}>{profile?.name ?? `uid:${uid}`}{displayStar && account.star > 0 && "🌟"}</span>
     )
 }
 /**
