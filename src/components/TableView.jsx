@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, getURL, LightAnchor, OriginAnchor, Username } from "./Generic";
+import FadeAnimation, { FloatDiv, FloatDivBinding, FloatDivContainer, getURL, Anchor, OriginAnchor, Username } from "./Generic";
 import styles from "./TableView.module.css";
 import { acquireAllUserProfile, acquireOrigin, acquireProblem, acquireUID, subscribe } from "../protocol_v2";
 
@@ -19,9 +19,9 @@ function HeaderView({ problems, ref }) {
                             <div>{problem.pid} {problem.name}</div>
                         </FloatDiv>
                         <FloatDivBinding className={styles.header_cell}>
-                            <LightAnchor href={getURL(problem.pid) ?? undefined} className={styles.inner_header}>
+                            <Anchor href={getURL(problem.pid) ?? undefined} thin={true} className={styles.inner_header}>
                                 {problem.pid}
-                            </LightAnchor>
+                            </Anchor>
                         </FloatDivBinding>
                     </FloatDivContainer>
                 )

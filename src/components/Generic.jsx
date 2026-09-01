@@ -91,21 +91,21 @@ export function ShadowRoot({ children }) {
     );
 }
 
-export function Anchor({ children, href, ...rest }) {
-    let cls = styles.anchor;
+/**
+ * @param {Object} options
+ * @param {string} options.href
+ * @param {boolean} [options.thin=false]
+ * @param {boolean} [options.blue=true]
+ */
+export function Anchor({ children, href, thin = false, blue = true, ...rest }) {
+    let cls = [];
+    if (blue) cls.push(styles.anchor);
+    if (!thin) cls.push(styles.thick);
     if (rest.className) {
-        cls += " " + rest.className;
+        cls.push(rest.className);
         delete rest.className;
     }
-    return <a className={cls} href={href} target="_blank" {...rest}>{children}</a>
-}
-export function LightAnchor({ children, href, ...rest }) {
-    let cls = `${styles.anchor} ${styles.light}`;
-    if (rest.className) {
-        cls += " " + rest.className;
-        delete rest.className;
-    }
-    return <a className={cls} href={href} target="_blank" {...rest}>{children}</a>
+    return <a className={cls.join(" ")} href={href} target="_blank" {...rest}>{children}</a>
 }
 export function Button({ children, onClick, confirm = null, ...rest }) {
     return <button

@@ -7,10 +7,6 @@
     cursor: pointer;
 }
 
-.anchor:not(.light) {
-    font-weight: bold;
-}
-
 .anchor:hover {
     filter: var(--filter-lv2);
 }
@@ -21,6 +17,10 @@
 
 .anchor.disabled {
     cursor: default;
+}
+
+.thick {
+    font-weight: bold;
 }
 
 .button {
