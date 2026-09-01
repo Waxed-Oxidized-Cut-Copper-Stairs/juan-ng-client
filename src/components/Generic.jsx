@@ -107,6 +107,24 @@ export function Anchor({ children, href, thin = false, blue = true, ...rest }) {
     }
     return <a className={cls.join(" ")} href={href} target="_blank" {...rest}>{children}</a>
 }
+/**
+ * @param {Object} options
+ * @param {string} options.href
+ */
+export function QuietAnchor({ children, href, ...rest }) {
+    let cls = [styles.quietanchor];
+    if (rest.className) {
+        cls.push(rest.className);
+        delete rest.className;
+    }
+    return <span
+        href={href}
+        className={cls.join(" ")}
+        {...rest}
+        onClick={() => {
+            chrome.tabs.create({ url: href, active: false });
+        }}>{children}</span>
+}
 export function Button({ children, onClick, confirm = null, ...rest }) {
     return <button
         className={styles.button}

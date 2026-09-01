@@ -23,6 +23,19 @@
     font-weight: bold;
 }
 
+.quietanchor {
+    transition: filter 0.1s ease-in-out;
+    cursor: pointer;
+}
+
+.quietanchor:hover {
+    filter: var(--filter-lv2);
+}
+
+.quietanchor:active {
+    filter: var(--filter-lv3);
+}
+
 .button {
     color: var(--text-color);
     background-color: var(--background);
