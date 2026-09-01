@@ -132,7 +132,7 @@ export function ComboBox({ items, selected, setSelected }) {
     const onChange = useCallback((e) => {
         const val = items.find(item => item[0] === Number(e.target.value));
         if (val) setSelected(val);
-    }, []);
+    }, [items]);
     return (
         <select value={selected[0]} onChange={e => onChange(e)}>
             {items.map(([value, label]) => (
