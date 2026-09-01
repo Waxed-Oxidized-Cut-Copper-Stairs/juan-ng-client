@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 window.addEventListener("message", (e) => {
     if (e.source !== window) return;
     if (e.origin !== location.origin) return;
