@@ -14,7 +14,7 @@ Firefox 无法使用此插件，因为它不支持 Service Worker。
 
 最低 Chrome/Edge 版本要求为 109。
 
-**服务端修改 `config/data.js` 后，请重新启动客户端以应用更改。**
+**服务端修改 `config/data.json` 后，请重新启动客户端以应用更改。**
 
 **本插件与洛谷、CodeForces 和 AtCoder 官方无任何关联。**
 
