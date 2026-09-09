@@ -100,7 +100,6 @@ function DatabaseOutline() {
             }
         }
     }
-    console.log(outdated, nodeArr);
     return (
         <div>
             数据库概要 <StatusBar />
