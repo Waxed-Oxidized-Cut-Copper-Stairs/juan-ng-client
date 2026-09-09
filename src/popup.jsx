@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { StrictMode, useCallback, useEffect, useRef, useState } from "react";
+/** @type {Group[]}} */
+const users = await chrome.runtime.sendMessage({ dst: "sw", type: "query-users" });
+
+import { StrictMode, useCallback, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { acquireOutline, flushCache, isCrawlLuoguPermitted, startCrawlLuogu, stopCrawlLuogu, subscribe } from "./protocol_v2.js";
-import { Anchor, Button, LightAnchor, percentToColor, percentToString } from "./components/Generic";
+import { acquireAllUserProfile, acquireOutline, flushCache, isCrawlLuoguPermitted, startCrawlLuogu, stopCrawlLuogu, subscribe } from "./protocol_v2.js";
+import { Anchor, Button, percentToColor, percentToString, QuietAnchor, Username } from "./components/Generic";
 import styles from "./popup.module.css";
 import StatusBar from "./components/StatusBar.jsx";
 import { registerRoot } from "./lib/darktheme.js";
@@ -46,39 +49,58 @@ function DatabaseOutline() {
             crawled: 0
         }
     });
-    const [outdated, setOutdated] = useState([]);
+    const [outdated, setOutdated] = useState(new Set());
+    const [profiles, setProfiles] = useState(new Map());
     const [loading, setLoading] = useState(true);
-    const exportOutdatedRef = useRef(null);
-    const exportOutdatedAsMdRef = useRef(null);
     let cancelled = false;
     const update = useCallback(() => {
         acquireOutline()
             .then(outline => {
                 if (cancelled) return;
                 setOutline(outline);
-                setOutdated(outline.luogu.outdated);
+                setOutdated(new Set(outline.luogu.outdated));
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
             });
     }, []);
-    const exportOutdated = useCallback(() => {
-        ;
-    }, []);
-    const exportOutdatedAsMd = useCallback(() => {
-        ;
-    }, []);
-    const exportData = useCallback(() => {
-        ;
+    const updateProfile = useCallback(() => {
+        acquireAllUserProfile().then(value => {
+            if (!cancelled) setProfiles(new Map(value));
+        });
     }, []);
     useEffect(() => {
         update();
+        updateProfile();
+        const id = setInterval(() => update(), 1000);
         const unload = subscribe("progress", () => update());
+        const unload2 = subscribe("profile", () => updateProfile());
         return () => {
             cancelled = true;
             unload();
+            unload2();
+            clearInterval(id);
         }
     }, []);
+    const nodeArr = [];
+    for (const group of users) {
+        for (const account of group.accounts) {
+            const uid = account.luogu;
+            if (outdated.has(uid)) {
+                if (nodeArr.length) {
+                    nodeArr.push(<span>, </span>);
+                }
+                /** @type {LuoguProfileNew} */
+                const profile = profiles.get(uid) ?? {};
+                nodeArr.push(
+                    <QuietAnchor href={`https://www.luogu.com.cn/user/${uid}/practice`} thin={true}>
+                        <Username className={profile.privacy ? styles.na : styles.outdated} account={account} profile={profile} displayStar={false}></Username>
+                    </QuietAnchor>
+                );
+            }
+        }
+    }
+    console.log(outdated, nodeArr);
     return (
         <div>
             数据库概要 <StatusBar />
@@ -93,23 +115,13 @@ function DatabaseOutline() {
                 <ul>
                     <li>
                         <div>
-                            洛谷：<OutlineText crawled={Math.min(outline.luogu.crawled, outline.luogu.count - outdated.length)} count={outline.luogu.count} />
+                            洛谷：<OutlineText crawled={Math.min(outline.luogu.crawled, outline.luogu.count - outdated.size)} count={outline.luogu.count} />
                         </div>
                         <div>
-                            {outdated.length ? (
+                            {outdated.size ? (
                                 <>
-                                    有 <span className={styles.bad}>{outdated.length}</span> 条数据需要更新
-                                    <div className={styles.outdated_list}>
-                                        {outdated.map((uid, idx, arr) => {
-                                            return (
-                                                <span>{uid}</span>
-                                            )
-                                        })};
-                                    </div>
-                                    <div>
-                                        <Button ref={exportOutdatedRef} onClick={() => exportOutdated()}>复制</Button>
-                                        <Button ref={exportOutdatedAsMdRef} onClick={() => exportOutdatedAsMd()}>复制为 Markdown</Button>
-                                    </div>
+                                    有 <span className={styles.bad}>{outdated.size}</span> 条数据需要更新
+                                    <div>{nodeArr}</div>
                                 </>
                             ) : (
                                 <><span className={styles.ok}>所有</span> 数据都是最新的</>
@@ -124,9 +136,6 @@ function DatabaseOutline() {
                     </li>
                 </ul>
             )}
-            <div>
-                <Button onClick={() => exportData()}>导出数据</Button>
-            </div>
         </div >
     )
 }
@@ -162,10 +171,17 @@ function LuoguPermission() {
 function CacheOperation() {
     return (
         <div>
-            缓存操作：
-            <Button onClick={() => { flushCache(); }} confirm="此操作将刷新所有缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新所有</Button>
-            <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
-            <Button onClick={() => { flushCache(["cf", "at"]); }}>刷新 CF/AT</Button>
+            <div>
+                缓存操作：
+                <Button onClick={() => { flushCache(); }} confirm="此操作将刷新所有缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新所有</Button>
+                <Button onClick={() => { flushCache(["lg"]); }} confirm="此操作将刷新洛谷平台缓存，可能消耗较长时间。确定要刷新缓存吗？">刷新洛谷</Button>
+                <Button onClick={() => { flushCache(["cf", "at"]); }}>刷新 CF/AT</Button>
+            </div>
+            {/* <div style={{ marginTop: "3px" }}>
+                洛谷数据操作：
+                <Button onClick={() => { }}>导入</Button>
+                <Button onClick={() => { }}>导出</Button>
+            </div> */}
         </div>
     )
 }
@@ -193,9 +209,9 @@ export default function Popup() {
                     <br />
                     数据来源：
                     <ul>
-                        <li><LightAnchor href="https://www.luogu.com.cn/">洛谷（自动爬取/半自动添加数据）</LightAnchor></li>
-                        <li><LightAnchor href="https://codeforces.com/apiHelp">CodeForces API</LightAnchor></li>
-                        <li><LightAnchor href="https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md">AtCoder Problems（第三方 API）</LightAnchor></li>
+                        <li><Anchor href="https://www.luogu.com.cn/" thin={true}>洛谷（自动爬取/半自动添加数据）</Anchor></li>
+                        <li><Anchor href="https://codeforces.com/apiHelp" thin={true}>CodeForces API</Anchor></li>
+                        <li><Anchor href="https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md" thin={true}>AtCoder Problems（第三方 API）</Anchor></li>
                     </ul>
                 </div>
             </main>

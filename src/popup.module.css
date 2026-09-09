@@ -21,14 +21,6 @@
     font-weight: bold;
 }
 
-.outdated_list {
-    color: var(--light-text);
-}
-
-.outdated_list>span:not(:last-child)::after {
-    content: ", ";
-}
-
 .ok {
     color: var(--green);
     font-weight: bold;
@@ -37,4 +29,12 @@
 .bad {
     color: var(--red);
     font-weight: bold;
+}
+
+.na {
+    color: var(--blue);
+}
+
+.outdated {
+    color: var(--light-text);
 }
