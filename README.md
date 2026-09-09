@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机客户端
 
-*Last Update：2026-08-31*
+*Last Update：2026-09-09*
 
 > 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
 >
@@ -38,41 +38,22 @@ Firefox 无法使用此插件，因为它不支持 Service Worker。
 
 请先检查环境要求并安装服务端。
 
-执行如下命令以克隆仓库。
+从 [Release 页面](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client/releases) 下载新版 crx 文件。
 
-```bash
-git clone --depth=1 -b release https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client.git
-```
-
-Git 克隆相关问题请见 [juan-ng-server 的常见问题 QA](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server/blob/main/README.md#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98-qa)。
-
-**更新时请按 [更新指南](#更新指南) 操作。**
-
-在浏览器扩展页面开启开发者模式，点击“加载解压缩的扩展”，在弹出的对话框中选择 manifest.json 文件所在的目录即可。
+在浏览器扩展页面开启开发者模式，然后将 crx 文件拖入浏览器窗口，点击确认即可完成安装。
 
 开发环境参考：
 
 - 操作系统
   - Ubuntu 20.04.6 LTS
-- 扩展使用环境
-  - Microsoft Edge 151.0.4129.107
+- 扩展测试环境
+  - Microsoft Edge 152.0.4191.66
 - 前端编译环境
   - Node.js 24.20.0
   - NPM 12.0.2
   - React 19.2.8
   - Vite 8.2.2
   - 详见 package.json 和 package-lock.json
-
-## 更新指南
-
-执行如下命令以更新。
-
-**注意**：如果你修改了源代码，这会覆盖你的修改。
-
-```bash
-git fetch --depth=1 origin release
-git checkout -fB release FETCH_HEAD
-```
 
 ## 常见无需担心的问题
 
