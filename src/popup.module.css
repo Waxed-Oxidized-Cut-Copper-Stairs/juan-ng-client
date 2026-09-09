@@ -17,8 +17,16 @@
     font-weight: bold;
 }
 
-.luoguPermissionStatus {
-    font-weight: bold;
+.click {
+    cursor: pointer;
+}
+
+.click:hover {
+    filter: var(--filter-lv2);
+}
+
+.click:active {
+    filter: var(--filter-lv3);
 }
 
 .ok {

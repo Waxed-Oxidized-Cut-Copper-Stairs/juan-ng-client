@@ -3,7 +3,7 @@
 /** @type {Group[]}} */
 const users = await chrome.runtime.sendMessage({ dst: "sw", type: "query-users" });
 
-import { StrictMode, useCallback, useEffect, useState } from "react";
+import { StrictMode, useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { acquireAllUserProfile, acquireOutline, flushCache, isCrawlLuoguPermitted, startCrawlLuogu, stopCrawlLuogu, subscribe } from "./protocol_v2.js";
 import { Anchor, Button, percentToColor, percentToString, QuietAnchor, Username } from "./components/Generic";
@@ -141,9 +141,24 @@ function DatabaseOutline() {
 
 function LuoguPermission() {
     const [permitted, setPermitted] = useState(false);
+    const locked = useRef(false);
     const update = useCallback(() => {
-        isCrawlLuoguPermitted().then(ret => setPermitted(ret));
+        locked.current = true;
+        isCrawlLuoguPermitted()
+            .then(ret => setPermitted(ret))
+            .then(() => { locked.current = false; });
     }, []);
+    const flip = useCallback(() => {
+        if (permitted) {
+            stopCrawlLuogu();
+            setTimeout(() => update(), 100);
+        } else {
+            if (window.confirm("自动爬取可能导致洛谷账号被封禁，请确认了解并自行承担风险后使用")) {
+                startCrawlLuogu();
+                setTimeout(() => update(), 100);
+            }
+        }
+    }, [permitted]);
     useEffect(() => {
         update();
         const id = setInterval(() => update(), 1000);
@@ -151,16 +166,14 @@ function LuoguPermission() {
             clearInterval(id);
         }
     }, []);
+    console.log(permitted);
     return (
         <div>
             <div>
                 自动爬取洛谷通过情况：
-                <Button onClick={() => { startCrawlLuogu(); setTimeout(() => update(), 100); }} confirm="自动爬取可能导致被洛谷封禁，请确认了解并自行承担风险后使用">允许</Button>
-                <Button onClick={() => { stopCrawlLuogu(); setTimeout(() => update(), 100); }}>禁止</Button>
-            </div>
-            <div>
-                当前状态：
-                <span className={permitted ? styles.ok : styles.bad}>{permitted ? "允许" : "禁止"}</span>
+                <span className={styles.click} onClick={() => flip()}>
+                    <span className={permitted ? styles.ok : styles.bad}>{permitted ? "允许" : "禁止"}</span>
+                </span>
                 （{permitted ? <span className={styles.bad}>有风险</span> : "默认值"}）
             </div>
         </div>
