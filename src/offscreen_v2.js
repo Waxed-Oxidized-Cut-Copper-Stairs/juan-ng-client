@@ -371,7 +371,7 @@ async function crawlLuogu(uid, duration = null) {
     });
     luoguLock = nxt.finally(() => {
         if (luoguPermission) sleep(randint(60 * 1000, 5 * 60 * 1000));
-    }).catch(() => { });
+    }).catch(err => error(err));
     const data = await nxt;
     if (!data) return;
     try {
@@ -453,7 +453,7 @@ async function crawlCodeforces(handle, duration = null) {
         return await fetchAPI(url, key, codeforcesDB);
     });
     // Codeforces API 限制 2s/req
-    codeforcesLock = nxt.finally(() => sleep(2026)).catch(() => { });
+    codeforcesLock = nxt.finally(() => sleep(2026)).catch(err => error(err));
     const data = await nxt;
     if (!data) return;
     try {
@@ -542,7 +542,7 @@ async function crawlAtcoder(handle, duration = null) {
         };
     });
     // Kenkoooo API 限制 1s/req
-    atcoderLock = nxt.finally(() => sleep(1024)).catch(() => { });
+    atcoderLock = nxt.finally(() => sleep(1024)).catch(err => error(err));
     /** @type {AtCoderPractice} */
     const data = await nxt;
     if (!data) return;
@@ -776,8 +776,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             flushSpecificCache(data.accounts, data.domains).then(() => mainloop());
             break;
         case "start-crawl":
-            luoguPermission = true;
-            mainloop();
+            if (mainloopActive) {
+                // 确保队列清空后再设置权限
+                // 如果快速切换权限，这样能避免由于一部分 sleep 被跳过导致的速率限制失效
+                luoguLock = luoguLock
+                    .catch(err => error(err))
+                    .then(() => {
+                        if (luoguPermission) return;
+                        luoguPermission = true;
+                        return sleep(randint(60 * 1000, 5 * 60 * 1000)).then(() => mainloop());
+                    })
+                    .catch(err => error(err));
+            } else {
+                luoguPermission = true;
+                mainloop();
+            }
             break;
         case "stop-crawl":
             luoguPermission = false;
