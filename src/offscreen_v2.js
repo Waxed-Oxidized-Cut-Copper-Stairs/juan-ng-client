@@ -29,6 +29,9 @@ const DURATION_AT_NORMAL = 24 * 60 * 60 * 1000;
 const DURATION_AT_HARD = 24 * 60 * 60 * 1000;
 const DURATION_AT_LUNATIC = 6 * 60 * 60 * 1000;
 
+const SLEEP_LG_MN = 60 * 1000;
+const SLEEP_LG_MX = 5 * 60 * 1000;
+
 const tempListener = (message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "offscreen") return;
@@ -293,7 +296,8 @@ async function fetchAPI(url, key = null, db = null) {
     return await resp.json();
 }
 
-let luoguLock = sleep(60 * 1000);
+let luoguLock = Promise.resolve();
+let lastLuoguUpdate = performance.now();
 /**
  * @param {string} json
  * @param {number | null} [uid]
@@ -345,6 +349,7 @@ async function crawlLuogu(uid, duration = null) {
         if (!luoguPermission) {
             return;
         }
+        await sleep(randint(SLEEP_LG_MN, SLEEP_LG_MX) - (performance.now() - lastLuoguUpdate));
         const url = `https://www.luogu.com.cn/user/${uid}/practice`;
         log(`fetchProxy ${url}`);
         let resp;
@@ -370,7 +375,7 @@ async function crawlLuogu(uid, duration = null) {
         return await resp.text();
     });
     luoguLock = nxt.finally(() => {
-        if (luoguPermission) sleep(randint(60 * 1000, 5 * 60 * 1000));
+        lastLuoguUpdate = performance.now();
     }).catch(err => error(err));
     const data = await nxt;
     if (!data) return;
@@ -784,7 +789,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     .then(() => {
                         if (luoguPermission) return;
                         luoguPermission = true;
-                        return sleep(randint(60 * 1000, 5 * 60 * 1000)).then(() => mainloop());
+                        mainloop();
                     })
                     .catch(err => error(err));
             } else {
