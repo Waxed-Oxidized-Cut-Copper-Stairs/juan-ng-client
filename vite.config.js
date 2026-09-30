@@ -32,7 +32,6 @@ function generateManifestPlugin() {
                     "background",
                     "cookies",
                     "notifications",
-                    "offscreen",
                     "storage",
                     "tabs",
                     "webNavigation"
@@ -125,7 +124,6 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 popup: resolve(import.meta.dirname, "popup.html"),
-                // offscreen: resolve(import.meta.dirname, "offscreen.html"),
                 content: resolve(import.meta.dirname, "src/frontend/pages/content.jsx"),
                 // "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
                 // bridge: resolve(import.meta.dirname, "src/bridge.js"),
