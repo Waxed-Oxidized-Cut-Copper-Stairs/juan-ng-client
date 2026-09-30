@@ -40,10 +40,10 @@ function generateManifestPlugin() {
                     "https://*.luogu.com.cn/*",
                     "https://www.luogu.me/*"
                 ],
-                // background: {
-                //     "service_worker": "service-worker.js",
-                //     "type": "module"
-                // },
+                background: {
+                    "service_worker": "service-worker.js",
+                    "type": "module"
+                },
                 icons: {
                     "16": "assets/icon.png",
                     "48": "assets/icon.png",
@@ -125,7 +125,7 @@ export default defineConfig({
             input: {
                 popup: resolve(import.meta.dirname, "entries/popup.html"),
                 content: resolve(import.meta.dirname, "src/frontend/pages/content.jsx"),
-                // "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
+                "service-worker": resolve(import.meta.dirname, "src/backend/service-worker.js"),
                 // bridge: resolve(import.meta.dirname, "src/bridge.js"),
                 // hook: resolve(import.meta.dirname, "src/hook.js"),
                 management: resolve(import.meta.dirname, "entries/management.html"),
@@ -136,6 +136,7 @@ export default defineConfig({
             output: {
                 entryFileNames: (chunkInfo) => {
                     if (chunkInfo.name === "content") return "content.js";
+                    if (chunkInfo.name === "service-worker") return "service-worker.js";
                     return "assets/[hash].js";
                 },
                 chunkFileNames: "assets/[hash].js",
