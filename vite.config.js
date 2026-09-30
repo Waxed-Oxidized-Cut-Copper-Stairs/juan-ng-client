@@ -49,7 +49,7 @@ function generateManifestPlugin() {
                     "48": "assets/icon.png",
                     "128": "assets/icon.png"
                 },
-                action: { "default_popup": "popup.html" },
+                action: { "default_popup": "entries/popup.html" },
                 content_scripts: [
                     // {
                     //     matches: [
@@ -79,7 +79,7 @@ function generateManifestPlugin() {
                     // }
                 ],
                 options_ui: {
-                    "page": "management.html",
+                    "page": "entries/management.html",
                     "open_in_tab": true
                 },
                 web_accessible_resources: [
@@ -123,15 +123,15 @@ export default defineConfig({
         modulePreload: false,
         rollupOptions: {
             input: {
-                popup: resolve(import.meta.dirname, "popup.html"),
+                popup: resolve(import.meta.dirname, "entries/popup.html"),
                 content: resolve(import.meta.dirname, "src/frontend/pages/content.jsx"),
                 // "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
                 // bridge: resolve(import.meta.dirname, "src/bridge.js"),
                 // hook: resolve(import.meta.dirname, "src/hook.js"),
-                management: resolve(import.meta.dirname, "management.html"),
-                table: resolve(import.meta.dirname, "table.html"),
-                filter: resolve(import.meta.dirname, "filter.html"),
-                about: resolve(import.meta.dirname, "about.html"),
+                management: resolve(import.meta.dirname, "entries/management.html"),
+                table: resolve(import.meta.dirname, "entries/table.html"),
+                filter: resolve(import.meta.dirname, "entries/filter.html"),
+                about: resolve(import.meta.dirname, "entries/about.html"),
             },
             output: {
                 entryFileNames: (chunkInfo) => {
