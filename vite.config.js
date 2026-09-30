@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import { execSync } from "child_process";
 import { resolve } from "path";
 
-const juanVersion = "2.4.1";
+const juanVersion = "3.0.0";
 const commitHash = (() => {
     try {
         return execSync("git rev-parse --short HEAD").toString().trim()
@@ -23,7 +23,7 @@ function generateManifestPlugin() {
             const manifest = {
                 manifest_version: 3,
                 name: "联考水表机",
-                key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2pDuO9/P1XIsfylJ8TgMNw7oqpqLIXrCbQSFOfDhktTPAO2azAhEnElWbO+HQCStAkPDgPLxd9a2u51fDUYyqyySyD8RlcevnmwjoOxXFWJokEsIz7IUtOHfOfJdU3MLp2NQtM4dSnKfob+C9HRuKrkpDN4y2FM6u6GhpMQeBEg2ntzSLeet3al2k/mIddVmnQf4GPwNOlUfYFdlTiPRraR5jxTcSb2EcKBkwM9O0xTAmXO3WkvAaHUTATgjr50tBZzOAeT53DnlrYavrTD+msUFOrdIk7LcjSmrWch+I6fhZ5HufQinV3BFP5Xq7QeESy5E3LFko6DKwPGX0dGd4QIDAQAB",
+                // key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2pDuO9/P1XIsfylJ8TgMNw7oqpqLIXrCbQSFOfDhktTPAO2azAhEnElWbO+HQCStAkPDgPLxd9a2u51fDUYyqyySyD8RlcevnmwjoOxXFWJokEsIz7IUtOHfOfJdU3MLp2NQtM4dSnKfob+C9HRuKrkpDN4y2FM6u6GhpMQeBEg2ntzSLeet3al2k/mIddVmnQf4GPwNOlUfYFdlTiPRraR5jxTcSb2EcKBkwM9O0xTAmXO3WkvAaHUTATgjr50tBZzOAeT53DnlrYavrTD+msUFOrdIk7LcjSmrWch+I6fhZ5HufQinV3BFP5Xq7QeESy5E3LFko6DKwPGX0dGd4QIDAQAB",
                 version: juanVersion,
                 version_name: `${juanVersion} (${commitHash})`,
                 description: "查查表",
@@ -39,13 +39,12 @@ function generateManifestPlugin() {
                 ],
                 host_permissions: [
                     "https://*.luogu.com.cn/*",
-                    "https://www.luogu.me/*",
-                    "http://127.0.0.1:6969/*"
+                    "https://www.luogu.me/*"
                 ],
-                background: {
-                    "service_worker": "service-worker.js",
-                    "type": "module"
-                },
+                // background: {
+                //     "service_worker": "service-worker.js",
+                //     "type": "module"
+                // },
                 icons: {
                     "16": "assets/icon.png",
                     "48": "assets/icon.png",
@@ -53,33 +52,37 @@ function generateManifestPlugin() {
                 },
                 action: { "default_popup": "popup.html" },
                 content_scripts: [
-                    {
-                        matches: [
-                            "https://www.luogu.com.cn/*",
-                            "https://www.luogu.com/*",
-                            "https://www.luogu.me/*"
-                        ],
-                        js: ["content-wrapper.js"],
-                        css: ["style.css"]
-                    },
-                    {
-                        matches: [
-                            "https://www.luogu.com.cn/*",
-                            "https://www.luogu.com/*"
-                        ],
-                        js: ["hook.js"],
-                        world: "MAIN",
-                        run_at: "document_start",
-                    },
-                    {
-                        matches: [
-                            "https://www.luogu.com.cn/*",
-                            "https://www.luogu.com/*"
-                        ],
-                        js: ["bridge.js"],
-                        run_at: "document_start",
-                    }
+                    // {
+                    //     matches: [
+                    //         "https://www.luogu.com.cn/*",
+                    //         "https://www.luogu.com/*",
+                    //         "https://www.luogu.me/*"
+                    //     ],
+                    //     js: ["content-wrapper.js"],
+                    //     css: ["style.css"]
+                    // },
+                    // {
+                    //     matches: [
+                    //         "https://www.luogu.com.cn/*",
+                    //         "https://www.luogu.com/*"
+                    //     ],
+                    //     js: ["hook.js"],
+                    //     world: "MAIN",
+                    //     run_at: "document_start",
+                    // },
+                    // {
+                    //     matches: [
+                    //         "https://www.luogu.com.cn/*",
+                    //         "https://www.luogu.com/*"
+                    //     ],
+                    //     js: ["bridge.js"],
+                    //     run_at: "document_start",
+                    // }
                 ],
+                options_ui: {
+                    "page": "management.html",
+                    "open_in_tab": true
+                },
                 web_accessible_resources: [
                     {
                         "resources": [
@@ -122,22 +125,23 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 popup: resolve(import.meta.dirname, "popup.html"),
-                offscreen: resolve(import.meta.dirname, "offscreen.html"),
-                content: resolve(import.meta.dirname, "src/content.jsx"),
-                "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
-                bridge: resolve(import.meta.dirname, "src/bridge.js"),
-                hook: resolve(import.meta.dirname, "src/hook.js"),
+                // offscreen: resolve(import.meta.dirname, "offscreen.html"),
+                content: resolve(import.meta.dirname, "src/frontend/pages/content.jsx"),
+                // "service-worker": resolve(import.meta.dirname, "src/service-worker.js"),
+                // bridge: resolve(import.meta.dirname, "src/bridge.js"),
+                // hook: resolve(import.meta.dirname, "src/hook.js"),
+                management: resolve(import.meta.dirname, "management.html"),
+                table: resolve(import.meta.dirname, "table.html"),
+                filter: resolve(import.meta.dirname, "filter.html"),
+                about: resolve(import.meta.dirname, "about.html"),
             },
             output: {
                 entryFileNames: (chunkInfo) => {
                     if (chunkInfo.name === "content") return "content.js";
-                    if (chunkInfo.name === "bridge") return "bridge.js";
-                    if (chunkInfo.name === "hook") return "hook.js";
-                    if (chunkInfo.name === "service-worker") return "service-worker.js";
-                    return "assets/[name].[hash].js";
+                    return "assets/[hash].js";
                 },
-                chunkFileNames: "assets/[name].[hash].js",
-                assetFileNames: "assets/[name].[hash][extname]",
+                chunkFileNames: "assets/[hash].js",
+                assetFileNames: "assets/[hash][extname]",
             },
         },
     },
