@@ -1,0 +1,75 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use "./shared";
+
+:root {
+    @include shared.base-theme;
+    @include shared.base-font-config;
+}
+
+:root[theme="dark"] {
+    @include shared.dark-theme;
+}
+
+html {
+    box-sizing: border-box;
+}
+
+body {
+    @include shared.base-font;
+    font-size: 0.875rem;
+    background-color: var(--background);
+    color: var(--text-color);
+    margin: 0;
+    height: 100vh;
+}
+
+h2,
+h3,
+h4,
+h5 {
+    margin: 0;
+}
+
+h1 {
+    font-size: 2rem;
+    margin: .5em 0;
+}
+
+h2 {
+    font-size: 1.4rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+}
+
+h4,
+h5,
+h6 {
+    font-size: 1rem;
+}
+
+button {
+    line-height: 1;
+}
+
+code {
+    border: 1px solid var(--frame);
+    border-radius: 3px;
+    background-color: var(--quote-background);
+    padding: 0 3px;
+}
+
+#app {
+    max-width: 1000px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}

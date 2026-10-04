@@ -2,22 +2,7 @@
 
 @use "./shared";
 
-:root {
-    @include shared.base-theme;
-}
-
-:root[theme="dark"] {
-    @include shared.dark-theme;
-}
-
 body {
-    font-size: 0.875em;
+    @include shared.base-font;
     width: 400px;
-    margin: 10px;
-    background-color: var(--background);
-    color: var(--text-color);
-}
-
-ul {
-    margin: 3px 0;
 }
