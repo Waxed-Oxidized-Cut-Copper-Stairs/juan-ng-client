@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /**
  * @typedef {"lg" | "at" | "cf" | "uoj" | "qoj"} Platform
  * @typedef {{
