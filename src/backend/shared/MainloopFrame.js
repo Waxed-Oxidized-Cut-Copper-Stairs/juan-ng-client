@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { error, log, sleep, warning } from "../../shared/core";
+import { sleep } from "../../shared/asyncio";
+import { error, log, warning } from "../../shared/core";
 import { accountsDB } from "./ItemDB";
 
 /**

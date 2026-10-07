@@ -51,11 +51,4 @@ function log(reporter, headline, ...details) {
     console.groupEnd();
 }
 
-/**
- * 休眠至少 t 毫秒
- * @param {number} t
- * @returns {Promise<void>}
- */
-async function sleep(t) { await new Promise(r => setTimeout(r, t)); }
-
-export { error, warning, log, sleep };
+export { error, warning, log };
