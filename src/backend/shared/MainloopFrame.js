@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { error, log } from "../../shared/core";
+import { error, log, sleep, warning } from "../../shared/core";
 import { accountsDB } from "./ItemDB";
 
 /**
@@ -87,7 +87,7 @@ export class MainloopFrame {
             const timerId = setTimeout(() => abort.abort(), this.#timeout);
             try {
                 const url = this.#urlConstructor(account);
-                log(`MainloopFrame(${this.#platform}.fetch`, url);
+                log(`MainloopFrame(${this.#platform}).fetch`, url);
                 await fetch(url, { signal: abort.signal }).then(
                     async (resp) => {
                         if (resp.ok) {
@@ -98,6 +98,7 @@ export class MainloopFrame {
                                 reportFAIL(account);
                             }
                         } else {
+                            warning(`MainloopFrame(${this.#platform}).fetch`, `HTTP ${resp.status} ${resp.statusText}`);
                             reportFAIL(account);
                             await resp.body?.cancel();
                         }

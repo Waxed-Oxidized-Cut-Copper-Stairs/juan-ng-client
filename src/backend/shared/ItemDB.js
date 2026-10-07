@@ -59,14 +59,17 @@ export class ItemDB {
     }
     /**
      * 生成新 id，对应的值需要通过 set 存入
-     * @returns {Promise<string>}
+     * @returns {string}
      */
-    async generate() {
+    generate() {
+        return (++this.#capacity).toString();
+    }
+    /** 同步元数据 */
+    async syncmeta() {
         return new Promise((resolve, reject) => {
-            const id = (++this.#capacity).toString();
             const tx = this.#db.transaction(this.#metakey, "readwrite");
             tx.objectStore(this.#metakey).put(this.#capacity, "capacity");
-            tx.oncomplete = () => resolve(id);
+            tx.oncomplete = () => resolve();
             tx.onerror = () => {
                 --this.#capacity;
                 reject(tx.error);
@@ -101,13 +104,11 @@ export class ItemDB {
      * @note 注意：此函数会修改 items 的 id，以保持一致性
      */
     async setMany(items) {
-        for (const [id, value] of items) {
-            value.id = id;
-        }
         return new Promise((resolve, reject) => {
             const tx = this.#db.transaction(this.#storekey, "readwrite");
             const obj = tx.objectStore(this.#storekey);
             for (const [id, value] of items) {
+                value.id = id;
                 obj.put(value, id);
             }
             tx.oncomplete = () => resolve();

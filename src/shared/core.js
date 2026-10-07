@@ -54,9 +54,8 @@ function log(reporter, headline, ...details) {
 /**
  * 休眠至少 t 毫秒
  * @param {number} t
+ * @returns {Promise<void>}
  */
-async function sleep(t) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+async function sleep(t) { await new Promise(r => setTimeout(r, t)); }
 
 export { error, warning, log, sleep };
