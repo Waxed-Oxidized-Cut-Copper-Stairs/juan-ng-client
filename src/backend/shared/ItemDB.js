@@ -52,7 +52,7 @@ export class ItemDB {
         return new Promise((resolve, reject) => {
             const tx = this.#db.transaction(this.#metakey, "readonly");
             const req = tx.objectStore(this.#metakey).get("capacity");
-            tx.oncomplete = () => resolve(req.result);
+            tx.oncomplete = () => resolve(req.result ?? 0);
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);
         });
