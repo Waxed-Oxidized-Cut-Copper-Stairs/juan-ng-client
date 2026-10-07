@@ -48,4 +48,12 @@ function log(...obj) {
     console.groupEnd();
 }
 
-export { error, warning, log };
+/**
+ * 休眠至少 t 毫秒
+ * @param {number} t
+ */
+async function sleep(t) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export { error, warning, log, sleep };
