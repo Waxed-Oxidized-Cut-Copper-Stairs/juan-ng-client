@@ -23,27 +23,30 @@ function fmtShortDate(date = null) {
     return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
-function error(...obj) {
-    console.groupCollapsed(`%c${fmtShortDate()} %c[错误]`, "color: #66ccff", "color: red", obj[0]);
-    for (let i = 1; i < obj.length; ++i)
-        console.log(obj[i]);
-    console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
+/** @param {string} reporter */
+function error(reporter, headline, ...details) {
+    console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}] %c[ERROR]`, "color: #005555", "color: #3465a4", "color: #cc0000", headline);
+    for (const obj of details)
+        console.log(obj);
+    console.log(`%c${fmtDate()}`, "color: #005555");
     console.trace();
     console.groupEnd();
 }
-function warning(...obj) {
-    console.groupCollapsed(`%c${fmtShortDate()} %c[警告]`, "color: #66ccff", "color: yellow", obj[0]);
-    for (let i = 1; i < obj.length; ++i)
-        console.log(obj[i]);
-    console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
+/** @param {string} reporter */
+function warning(reporter, headline, ...details) {
+    console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}] %c[WARNING]`, "color: #005555", "color: #3465a4", "color: #c4a000", headline);
+    for (const obj of details)
+        console.log(obj);
+    console.log(`%c${fmtDate()}`, "color: #005555");
     console.trace();
     console.groupEnd();
 }
-function log(...obj) {
-    console.groupCollapsed(`%c${fmtShortDate()} %c`, "color: #66ccff", "color: black", obj[0]);
-    for (let i = 1; i < obj.length; ++i)
-        console.log(obj[i]);
-    console.log(`时间 %c${fmtDate()}`, "color: #66ccff");
+/** @param {string} reporter */
+function log(reporter, headline, ...details) {
+    console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}]`, "color: #005555", "color: #3465a4", headline);
+    for (const obj of details)
+        console.log(obj);
+    console.log(`%c${fmtDate()}`, "color: #005555");
     console.trace();
     console.groupEnd();
 }
