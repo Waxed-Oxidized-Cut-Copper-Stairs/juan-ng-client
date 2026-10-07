@@ -10,10 +10,11 @@ import { accountsDB } from "./shared/ItemDB";
  */
 async function addAccount(account) {
     if (typeof account.id !== "string") {
+        await accountsDB.init();
         account.id = await accountsDB.generate();
     }
     await accountsDB.set(account.id, account);
-    return account
+    return account;
 }
 /**
  * 按 id 删除账号
