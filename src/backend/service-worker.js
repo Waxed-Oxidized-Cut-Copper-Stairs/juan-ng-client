@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener(details => {
-    chrome.tabs.sendMessage(details.tabId, { dst: "tab", type: "route" }).catch(err => error(err));
+    chrome.tabs.sendMessage(details.tabId, { dst: "tab", type: "route" }).catch(err => error("service-worker.navigation", err));
 });
 
 console.log("Service Worker Loaded >w<");
