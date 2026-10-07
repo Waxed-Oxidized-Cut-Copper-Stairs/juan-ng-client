@@ -36,15 +36,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (dst !== "sw") return;
     switch (type) {
         case "add-account": {
-            addAccount(...data).then(sendResponse, sendResponse);
+            addAccount(...data).then(sendResponse, err => {
+                error("service-worker.addAccount", err);
+                sendResponse(null);
+            });
             return true;
         }
         case "delete-account": {
-            deleteAccount(...data).then(sendResponse, sendResponse);
+            deleteAccount(...data).then(sendResponse, err => {
+                error("service-worker.deleteAccount", err);
+                sendResponse(null);
+            });
             return true;
         }
         case "get-account-list": {
-            getAccountList(...data).then(sendResponse, sendResponse);
+            getAccountList(...data).then(sendResponse, err => {
+                error("service-worker.addAccountList", err);
+                sendResponse(null);
+            });
             return true;
         }
     }
