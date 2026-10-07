@@ -49,8 +49,18 @@ export class CacheDB {
         });
     }
     /**
+     * @overload
+     * @param {string} key
+     * @returns {Promise<T | undefined>}
+     */
+    /**
+     * @overload
+     * @param {string[]} key
+     * @returns {Promise<Record<string, T | undefined>>}
+     */
+    /**
      * @param {string | string[]} key
-     * @returns {Promise<T | undefined | (T | undefined)[]>}
+     * @returns {Promise<T | undefined | Record.<string, T | undefined>>}
      */
     async get(key) {
         return new Promise((resolve, reject) => {

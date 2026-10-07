@@ -117,8 +117,18 @@ export class ItemDB {
         });
     }
     /**
+     * @overload
+     * @param {string} id
+     * @returns {Promise<T | undefined>}
+     */
+    /**
+     * @overload
+     * @param {string[]} id
+     * @returns {Promise<Record<string, T | undefined>>}
+     */
+    /**
      * @param {string | string[]} id
-     * @returns {Promise<T | undefined | (T | undefined)[]>}
+     * @returns {Promise<T | undefined | Record.<string, T | undefined>>}
      */
     async get(id) {
         return new Promise((resolve, reject) => {
