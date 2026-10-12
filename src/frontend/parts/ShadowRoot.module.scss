@@ -1,0 +1,35 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use "../styles/shared";
+
+.xroot {
+    @include shared.base-theme;
+    @include shared.base-font-config;
+}
+
+.xroot[theme="dark"] {
+    @include shared.dark-theme;
+}
+
+.xbody {
+    @include shared.base-font;
+    box-sizing: border-box;
+    color: var(--text-color);
+}
+
+button {
+    line-height: 1;
+}
+
+code {
+    border: 1px solid var(--frame);
+    border-radius: 3px;
+    background-color: var(--quote-background);
+    padding: 0 3px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}

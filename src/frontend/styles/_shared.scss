@@ -1,21 +1,40 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
 @mixin base-theme {
-    --red: #aa0000;
-    --yellow: #ffc021;
-    --green: #008b00;
-    --blue: #3498db;
-    --fog: #ddd;
-    --haze: #bbb;
-    --light-red: #ff4444;
-    --light-green: #91ee91;
+    --red: #ff0000;
+    --yellow: #fcd337;
+    --green: #008000;
+    --blue: #007FFF;
+    --plastic-red: #aa0000;
+    --plastic-yellow: #ffc021;
+    --plastic-green: #008b00;
+    --plastic-blue: #3498db;
+    --card-red: #ffe4e6;
+    --card-yellow: #fef3c7;
+    --card-green: #d1fae5;
+    --card-blue: #dbeafe;
+    --card-purple: #ede9fe;
+    --emphasize-red: #ef4444;
+    --emphasize-yellow: #f59e0b;
+    --emphasize-green: #10b981;
+    --emphasize-blue: #3b82f6;
+    --emphasize-purple: #8b5cf6;
+    --frame-red: #fecaca;
+    --frame-yellow: #fde6a8;
+    --frame-green: #a7f3d0;
+    --frame-blue: #bfdbfe;
+    --frame-purple: #ddd6fe;
+    --focused-blue: #3b82f6;
+    --focused-frame: #ddd;
+    --hovered-frame: #ddd;
+    --frame: #ddd;
     --text-color: black;
-    --light-text: #7f7f7f;
-    --background: white;
-    --shadow: #1a1a1a1a;
-    --filter-lv1: brightness(0.875);
-    --filter-lv2: brightness(0.75);
-    --filter-lv3: brightness(0.5);
+    --secondary-text-color: #7f7f7f;
+    --shadow: #ccc;
+    --background: #f8f4f0;
+    --card-background: white;
+    --dim-background: #eee;
+    --quote-background: #ddd;
 }
 
 @mixin dark-theme {
@@ -38,6 +57,9 @@
 
 @mixin base-font {
     font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, PingFang SC, Noto Sans, Noto Sans SC, Source Sans Pro, Source Han Sans, Segoe UI, Arial, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif;
+}
+
+@mixin base-font-config {
     font-size: 16px;
     line-height: 1.5;
 }
