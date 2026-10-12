@@ -38,15 +38,15 @@ export function generateManifestPlugin() {
                 },
                 action: { "default_popup": "entries/popup.html" },
                 content_scripts: [
-                    // {
-                    //     matches: [
-                    //         "https://www.luogu.com.cn/*",
-                    //         "https://www.luogu.com/*",
-                    //         "https://www.luogu.me/*"
-                    //     ],
-                    //     js: ["content-wrapper.js"],
-                    //     css: ["style.css"]
-                    // },
+                    {
+                        matches: [
+                            "https://www.luogu.com.cn/*",
+                            "https://www.luogu.com/*",
+                            "https://www.luogu.me/*"
+                        ],
+                        js: ["content-wrapper.js"],
+                        css: ["style.css"]
+                    },
                     // {
                     //     matches: [
                     //         "https://www.luogu.com.cn/*",

@@ -6,12 +6,10 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { generateManifestPlugin } from "./plugins/manifest.js";
 import { commitHash, juanVersion } from "./plugins/meta.js";
+import shadowCssPlugin from "./plugins/shadow-css.js";
 
 export default defineConfig({
-    plugins: [
-        react(),
-        generateManifestPlugin(),
-    ],
+    plugins: [react(), generateManifestPlugin(), shadowCssPlugin()],
     root: ".",
     base: "",
     define: {
