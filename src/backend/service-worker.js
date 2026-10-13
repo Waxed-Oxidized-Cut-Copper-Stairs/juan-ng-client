@@ -62,6 +62,7 @@ export async function deleteAccount(id) {
  * @returns {Promise<Account[]>}
  */
 export async function getAccountList() {
+    await accountsDB.init();
     return await accountsDB.getAll();
 }
 
