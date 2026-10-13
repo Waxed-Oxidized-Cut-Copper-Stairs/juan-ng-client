@@ -68,26 +68,24 @@ export async function getAccountList() {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "sw") return;
+    /** @type {(promise: Promise, name: string) => Promise<void>} */
+    const wrapper = (promise, name) => {
+        promise.then(sendResponse, err => {
+            error(`service-worker.${name}`, err);
+            sendResponse(null);
+        });
+    };
     switch (type) {
         case "add-account": {
-            addAccount(...data).then(sendResponse, err => {
-                error("service-worker.addAccount", err);
-                sendResponse(null);
-            });
+            wrapper(addAccount(...data), "addAccount");
             return true;
         }
         case "delete-account": {
-            deleteAccount(...data).then(sendResponse, err => {
-                error("service-worker.deleteAccount", err);
-                sendResponse(null);
-            });
+            wrapper(deleteAccount(...data), "deleteAccount");
             return true;
         }
         case "get-account-list": {
-            getAccountList(...data).then(sendResponse, err => {
-                error("service-worker.addAccountList", err);
-                sendResponse(null);
-            });
+            wrapper(getAccountList(...data), "getAccountList");
             return true;
         }
     }
