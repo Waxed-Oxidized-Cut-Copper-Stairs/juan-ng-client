@@ -2,7 +2,7 @@
 
 import { error } from "../shared/core";
 import { mainloop as cfMainloop } from "./platform/codeforces";
-import { accountsDB } from "./shared/ItemDB";
+import { accountsDB, groupsDB, usersDB } from "./shared/ItemDB";
 
 function activateMainloop() {
     cfMainloop();
@@ -66,6 +66,68 @@ export async function getAccountList() {
     return await accountsDB.getAll();
 }
 
+/**
+ * 更新用户信息，如果用户不存在则创建
+ * 判断用户是否存在的依据是 user.id 是否设置
+ * @param {User} user
+ * @returns {Promise<User>}
+ */
+export async function updateUser(user) {
+    if (typeof user.id !== "string") {
+        await usersDB.init();
+        user.id = usersDB.generate();
+        await usersDB.syncmeta();
+    }
+    await usersDB.set(user.id, user);
+    return user;
+}
+/**
+ * 按 id 删除用户
+ * @param {string} id
+ */
+export async function deleteUser(id) {
+    ;
+}
+/**
+ * 获取用户列表
+ * @returns {Promise<User[]>}
+ */
+export async function getUserList() {
+    await usersDB.init();
+    return await usersDB.getAll();
+}
+
+/**
+ * 更新分组信息，如果分组不存在则创建
+ * 判断分组是否存在的依据是 group.id 是否设置
+ * @param {Group} group
+ * @returns {Promise<Group>}
+ */
+export async function updateGroup(group) {
+    if (typeof group.id !== "string") {
+        await groupsDB.init();
+        group.id = groupsDB.generate();
+        await groupsDB.syncmeta();
+    }
+    await groupsDB.set(group.id, group);
+    return group;
+}
+/**
+ * 按 id 删除分组
+ * @param {string} id
+ */
+export async function deleteGroup(id) {
+    ;
+}
+/**
+ * 获取用户列表
+ * @returns {Promise<Group[]>}
+ */
+export async function getGroupList() {
+    await groupsDB.init();
+    return await groupsDB.getAll();
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "sw") return;
@@ -87,6 +149,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case "get-account-list": {
             wrapper(getAccountList(...data), "getAccountList");
+            return true;
+        }
+        case "update-user": {
+            wrapper(updateUser(...data), "updateUser");
+            return true;
+        }
+        case "delete-user": {
+            wrapper(deleteUser(...data), "deleteUser");
+            return true;
+        }
+        case "get-user-list": {
+            wrapper(getUserList(...data), "getUserList");
+            return true;
+        }
+        case "update-group": {
+            wrapper(updateGroup(...data), "updateGroup");
+            return true;
+        }
+        case "delete-group": {
+            wrapper(deleteGroup(...data), "deleteGroup");
+            return true;
+        }
+        case "get-group-list": {
+            wrapper(getGroupList(...data), "getGroupList");
             return true;
         }
     }
