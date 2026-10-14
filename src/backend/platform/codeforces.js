@@ -38,6 +38,7 @@ function parseProblemset(prob) {
 }
 
 async function getAccounts() {
+    await accountsDB.init();
     return (await accountsDB.getAll()).filter((account) => account.platform === "cf");
 }
 
@@ -67,6 +68,7 @@ function update(id, record) {
 }
 async function updateAll() {
     const accounts = (await getAccounts());
+    await db.init();
     const records = await db.get(accounts.map((account) => account.uid));
     for (const account of accounts) {
         const record = records[account.uid];
