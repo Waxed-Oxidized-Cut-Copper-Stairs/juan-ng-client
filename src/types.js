@@ -24,3 +24,10 @@
  *   members: string[]
  * }} Group
  */
+
+/**
+ * @typedef {{
+ *   passed: string[],
+ *   submitted: string[]
+ * }} ProblemRecord
+ */

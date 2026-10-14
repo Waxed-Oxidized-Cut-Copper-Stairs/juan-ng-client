@@ -21,6 +21,20 @@ const initAccountMap = (async () => {
 })();
 
 /**
+ * 查询通过题号为 pid 的题目的账号
+ * @param {string} pid
+ * @returns {ProblemRecord}
+ */
+export async function queryPid(pid) {
+    const passed = [];
+    const submitted = [];
+    const { passed: cfPassed, submitted: cfSubmitted } = await codeforces.queryPid(pid);
+    for (const id of cfPassed) passed.push(id);
+    for (const id of cfSubmitted) submitted.push(id);
+    return { passed, submitted };
+}
+
+/**
  * 添加账号，返回含 id 的账号
  * 重复添加会自动合并
  * @param {Account} account
@@ -139,6 +153,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     };
     switch (type) {
+        case "query-pid": {
+            wrapper(queryPid(...data), "queryPid");
+            return true;
+        }
         case "add-account": {
             wrapper(addAccount(...data), "addAccount");
             return true;
@@ -173,6 +191,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case "get-group-list": {
             wrapper(getGroupList(...data), "getGroupList");
+            return true;
+        }
+        case "debug:expire-all": {
+            wrapper((async () => {
+                await accountsDB.init();
+                const accounts = await accountsDB.getAll()
+                const newAccounts = [];
+                for (const account of accounts) {
+                    account.expire_at = undefined;
+                    account.last_updated = undefined;
+                    newAccounts.push([account.id, account]);
+                }
+                await accountsDB.setMany(newAccounts);
+            })(), "debug:expire-all");
             return true;
         }
     }

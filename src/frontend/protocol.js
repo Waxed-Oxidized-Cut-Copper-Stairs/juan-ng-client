@@ -13,6 +13,11 @@ async function wrapper(promise, name) {
     }
 }
 
+/** @type {typeof import("../backend/service-worker").queryPid} */
+async function queryPid(pid) {
+    return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "query-pid", data: [pid] }), "queryPid");
+}
+
 /** @type {typeof import("../backend/service-worker").addAccount} */
 async function addAccount(account) {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "add-account", data: [account] }), "addAccount");
@@ -52,4 +57,4 @@ async function getGroupList() {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "get-group-list", data: [] }), "getGroupList");
 }
 
-export { addAccount, deleteAccount, getAccountList, updateUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList };
+export { queryPid, addAccount, deleteAccount, getAccountList, updateUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList };
