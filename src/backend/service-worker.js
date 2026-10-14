@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { error } from "../shared/core";
-import { mainloop as cfMainloop } from "./platform/codeforces";
+import * as codeforces from "./platform/codeforces";
 import { accountsDB, groupsDB, usersDB } from "./shared/ItemDB";
 
 function activateMainloop() {
-    cfMainloop();
+    codeforces.mainloop();
 }
 
 /** @param {Account} account */
