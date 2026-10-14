@@ -69,9 +69,9 @@ function update(id, record) {
 async function updateAll() {
     const accounts = (await getAccounts());
     await db.init();
-    const records = await db.get(accounts.map((account) => account.uid));
+    const records = await db.get(accounts.map((account) => account.id));
     for (const account of accounts) {
-        const record = records[account.uid];
+        const record = records[account.id];
         if (record) update(account.id, record);
     }
 }
@@ -112,7 +112,7 @@ async function handler(account, resp) {
     };
     update(account.id, ret);
     await db.init();
-    await db.set(account.uid, ret);
+    await db.set(account.id, ret);
     return account;
 }
 
@@ -123,7 +123,10 @@ export async function mainloop() {
     loop.mainloop();
 }
 
-/** @param {string} pid */
+/**
+ * @param {string} pid
+ * @returns {ProblemRecord}
+ */
 export async function queryPid(pid) {
     const passed = passedMap.get(pid);
     const submitted = submittedMap.get(pid);
