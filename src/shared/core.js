@@ -23,7 +23,11 @@ function fmtShortDate(date = null) {
     return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
-/** @param {string} reporter */
+/**
+ * @param {string} reporter
+ * @param {any} headline
+ * @param {any[]} details
+ */
 function error(reporter, headline, ...details) {
     console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}] %c[ERROR]`, "color: #005555", "color: #3465a4", "color: #cc0000", headline);
     for (const obj of details)
@@ -32,7 +36,11 @@ function error(reporter, headline, ...details) {
     console.trace();
     console.groupEnd();
 }
-/** @param {string} reporter */
+/**
+ * @param {string} reporter
+ * @param {any} headline
+ * @param {any[]} details
+ */
 function warning(reporter, headline, ...details) {
     console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}] %c[WARNING]`, "color: #005555", "color: #3465a4", "color: #c4a000", headline);
     for (const obj of details)
@@ -41,7 +49,11 @@ function warning(reporter, headline, ...details) {
     console.trace();
     console.groupEnd();
 }
-/** @param {string} reporter */
+/**
+ * @param {string} reporter
+ * @param {any} headline
+ * @param {any[]} details
+ */
 function log(reporter, headline, ...details) {
     console.groupCollapsed(`%c${fmtShortDate()} %c[${reporter}]`, "color: #005555", "color: #3465a4", headline);
     for (const obj of details)

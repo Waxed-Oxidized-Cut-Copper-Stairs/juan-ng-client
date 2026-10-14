@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { error } from "../shared/core";
+
 /**
  * @param {Promise<any>} promise
  * @param {string} name
@@ -7,7 +9,7 @@
 async function wrapper(promise, name) {
     try {
         return await promise;
-    } catch { err } {
+    } catch (err) {
         error(`protocol.${name}`, err);
         return null;
     }

@@ -1,15 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { error } from "../shared/core";
+
 /**
  * 把多个 ref 合并成一个 callback ref
- * @param {...React.Ref} refs
+ * @param {...React.Ref<any>} refs
  * @note React 19
  * @example const mergedRef = useMemo(() => mergeRef(ref1, ref2, ref3), [ref1, ref2, ref3]);
  */
 function mergeRef(...refs) {
-    return (node) => {
+    return (/** @type {any} */ node) => {
+        /** @type {(() => void)[]} */
         const cleanup = [];
+        /** @type {((node: any) => void)[]} */
         const manualFn = [];
+        /** @type {React.RefObject<any>[]} */
         const manualRef = [];
         for (const ref of refs) {
             if (typeof ref === "function") {
@@ -62,7 +67,7 @@ export function getPid(href = null) {
             }
         }
     } catch (e) {
-        error(e);
+        error("getPid", e);
     }
     return null;
 }

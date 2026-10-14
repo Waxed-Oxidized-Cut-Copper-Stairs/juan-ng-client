@@ -4,8 +4,11 @@ import { CacheDB } from "../shared/CacheDB";
 import { accountsDB } from "../shared/ItemDB";
 import { MainloopFrame } from "../shared/MainloopFrame";
 
-/** @param {CodeForcesProblemBrief} prob */
-function parsePid(prob) { return `CF${prob.contestId}${prob.index}`; }
+/**
+ * @param {CodeForcesProblemBrief} prob
+ * @returns {PID}
+ */
+function parsePid(prob) { return /** @type {PID} */(`CF${prob.contestId}${prob.index}`); }
 
 /** @type {CacheDB<CodeForcesPractice>} */
 const db = new CacheDB("codeforces");
@@ -23,6 +26,7 @@ async function handleProblemset(resp) {
         if (!problemset.has(prob.name)) {
             problemset.set(prob.name, []);
         }
+        // @ts-ignore
         problemset.get(prob.name).push(prob);
     }
     updateAll();
@@ -42,12 +46,12 @@ async function getAccounts() {
     return (await accountsDB.getAll()).filter((account) => account.platform === "cf");
 }
 
-/** @type {Map<string, Set<string>>} */
+/** @type {Map<PID, Set<InternalID>>} */
 const passedMap = new Map();
-/** @type {Map<string, Set<string>>} */
+/** @type {Map<PID, Set<InternalID>>} */
 const submittedMap = new Map();
 /**
- * @param {string} id
+ * @param {InternalID} id
  * @param {CodeForcesPractice} record
  */
 function update(id, record) {
@@ -55,14 +59,18 @@ function update(id, record) {
     for (const prob of submitted) {
         const pid = parseProblemset(prob);
         if (!submittedMap.has(pid)) submittedMap.set(pid, new Set());
+        // @ts-ignore
         if (!passedMap.has(pid) || !passedMap.get(pid).has(id)) {
+            // @ts-ignore
             submittedMap.get(pid).add(id);
         }
     }
     for (const prob of passed) {
         const pid = parseProblemset(prob);
         if (!passedMap.has(pid)) passedMap.set(pid, new Set());
+        // @ts-ignore
         if (submittedMap.has(pid)) submittedMap.get(pid).delete(id);
+        // @ts-ignore
         passedMap.get(pid).add(id);
     }
 }
@@ -82,15 +90,15 @@ async function updateAll() {
  */
 async function handler(account, resp) {
     const data = await resp.json();
-    if (!data) return;
+    if (!data) return account;
     /** @type {CodeForcesSubmission[]} */
     const submissions = data.result;
     if (!Array.isArray(submissions)) {
         throw TypeError(`[codeforces.handler] submission list is not an array.`);
     }
-    /** @type {Map<string, CodeForcesProblemBrief>} */
+    /** @type {Map<PID, CodeForcesProblemBrief>} */
     const passed = new Map();
-    /** @type {Map<string, CodeForcesProblemBrief>} */
+    /** @type {Map<PID, CodeForcesProblemBrief>} */
     const submitted = new Map();
     for (const submission of submissions) {
         // 假定存在 contestId
@@ -116,7 +124,7 @@ async function handler(account, resp) {
     return account;
 }
 
-const loop = new MainloopFrame("cf", (account) => `https://codeforces.com/api/user.status?handle=${account.uid}&lang=en`, handler);
+const loop = new MainloopFrame("cf", (account) => `https://codeforces.com/api/user.status?handle=${account.uid}&lang=en`, handler, 2026);
 loop.seize("https://codeforces.com/api/problemset.problems", handleProblemset);
 
 export async function mainloop() {
@@ -124,8 +132,8 @@ export async function mainloop() {
 }
 
 /**
- * @param {string} pid
- * @returns {ProblemRecord}
+ * @param {PID} pid
+ * @returns {Promise<ProblemRecord>}
  */
 export async function queryPid(pid) {
     const passed = passedMap.get(pid);
@@ -137,12 +145,13 @@ export async function queryPid(pid) {
 }
 
 /**
+ * 注意：尽管文档说 CodeForcesProble.contestId 可能不存在，但这里不处理，并认为一定存在
  * @typedef {{
  *   handle: string,
  *   name?: string
  * }} CodeForcesMember
  * @typedef {{
- *   contestId?: number,
+ *   contestId: number,
  *   problemsetName?: string,
  *   index: string,
  *   name: string,
@@ -197,7 +206,7 @@ export async function queryPid(pid) {
  *   season?: string
  * }} CodeForcesContest
  * @typedef {{
- *   contestId?: string,
+ *   contestId: number,
  *   index: string,
  *   name: string
  * }} CodeForcesProblemBrief

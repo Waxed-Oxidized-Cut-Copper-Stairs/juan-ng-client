@@ -15,6 +15,10 @@ const defaultDurationConfig = {
     ok: 24 * 60 * 60 * 1000,
     fail: 6 * 60 * 60 * 1000
 };
+/**
+ * @param {number} now
+ * @param {number | null} d
+ */
 function durationCalc(now, d) {
     if (typeof d !== "number") return null;
     return now + d;
@@ -59,7 +63,7 @@ export class MainloopFrame {
         const accounts = (await accountsDB.getAll()).filter((account) => account.platform === this.#platform);
         /** @type {Account[]} */
         const update = [];
-        const reportOK = (account) => {
+        const reportOK = (/** @type {Account} */ account) => {
             try {
                 /** @type {Account} */
                 const newAccount = structuredClone(account);
@@ -70,7 +74,7 @@ export class MainloopFrame {
                 error(`MainloopFrame(${this.#platform}).reportOK`, err);
             }
         };
-        const reportFAIL = (account) => {
+        const reportFAIL = (/** @type {Account} */ account) => {
             try {
                 /** @type {Account} */
                 const newAccount = structuredClone(account);
@@ -178,7 +182,7 @@ export class MainloopFrame {
         try {
             await this.#mainloop();
         } catch (err) {
-            error(err, `MainloopFrame(${this.#platform}).#mainloop`);
+            error(`MainloopFrame(${this.#platform}).#mainloop`, err);
         } finally {
             this.#mainloopBusy = false;
             if (this.#mainloopPending) {

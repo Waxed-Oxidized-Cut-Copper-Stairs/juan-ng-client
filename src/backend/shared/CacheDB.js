@@ -2,7 +2,7 @@
 
 /** @template T */
 export class CacheDB {
-    /** @type {IDBDatabase} */
+    /** @type {IDBDatabase | null} */
     #db;
     #root;
     #storekey;
@@ -14,7 +14,7 @@ export class CacheDB {
     }
     async init() {
         if (this.#db !== null) return;
-        await new Promise((resolve, reject) => {
+        await /** @type {Promise<void>} */ (new Promise((resolve, reject) => {
             const req = indexedDB.open(this.#root, 1);
             req.onsuccess = () => {
                 this.#db = req.result;
@@ -28,19 +28,25 @@ export class CacheDB {
             };
             req.onupgradeneeded = (event) => {
                 /** @type {IDBDatabase} */
+                // @ts-ignore
                 const db = event.target.result;
                 if (!db.objectStoreNames.contains(this.#storekey)) {
                     db.createObjectStore(this.#storekey);
                 }
             };
-        });
+        }));
     }
     /**
-     * @param {string} key
+     * @param {InternalID} key
      * @param {T} value
+     * @returns {Promise<void>}
      */
     async set(key, value) {
         return new Promise((resolve, reject) => {
+            if (!this.#db) {
+                reject();
+                return;
+            }
             const tx = this.#db.transaction(this.#storekey, "readwrite");
             tx.objectStore(this.#storekey).put(value, key);
             tx.oncomplete = () => resolve();
@@ -50,26 +56,31 @@ export class CacheDB {
     }
     /**
      * @overload
-     * @param {string} key
+     * @param {InternalID} key
      * @returns {Promise<T | undefined>}
      */
     /**
      * @overload
-     * @param {string[]} key
-     * @returns {Promise<Record<string, T | undefined>>}
+     * @param {InternalID[]} key
+     * @returns {Promise<Record<InternalID, T | undefined>>}
      */
     /**
-     * @param {string | string[]} key
-     * @returns {Promise<T | undefined | Record<string, T | undefined>>}
+     * @param {InternalID | InternalID[]} key
+     * @returns {Promise<T | undefined | Record<InternalID, T | undefined>>}
      */
     async get(key) {
         return new Promise((resolve, reject) => {
+            if (!this.#db) {
+                reject();
+                return;
+            }
             const tx = this.#db.transaction(this.#storekey, "readonly");
             if (typeof key === "string") {
                 const req = tx.objectStore(this.#storekey).get(key);
                 tx.oncomplete = () => resolve(req.result);
             } else {
                 const obj = tx.objectStore(this.#storekey);
+                /** @type {Record<InternalID, T | undefined>} */
                 const result = {};
                 for (const x of key) {
                     const req = obj.get(x);

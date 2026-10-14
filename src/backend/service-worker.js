@@ -8,9 +8,12 @@ function activateMainloop() {
     codeforces.mainloop();
 }
 
-/** @param {Account} account */
-function parseAccountId(account) { return `${account.platform}@${account.uid}`; }
-/** @type {Map<string, string>} */
+/**
+ * @param {Account} account
+ * @returns {DisplayID}
+ */
+function parseAccountId(account) { return /** @type {DisplayID} */(`${account.platform}@${account.uid}`); }
+/** @type {Map<DisplayID, InternalID>} */
 const accountIdMap = new Map();
 const initAccountMap = (async () => {
     await accountsDB.init();
@@ -22,8 +25,8 @@ const initAccountMap = (async () => {
 
 /**
  * 查询通过题号为 pid 的题目的账号
- * @param {string} pid
- * @returns {ProblemRecord}
+ * @param {PID} pid
+ * @returns {Promise<ProblemRecord>}
  */
 export async function queryPid(pid) {
     const passed = [];
@@ -47,9 +50,9 @@ export async function addAccount(account, cover = false) {
         await initAccountMap;
         const uuid = parseAccountId(account);
         if (accountIdMap.has(uuid)) {
-            account.id = accountIdMap.get(uuid);
+            account.id = /** @type {InternalID} */(accountIdMap.get(uuid));
             if (!cover) {
-                const old = await accountsDB.get(account.id);
+                const old = /** @type {Account} */(await accountsDB.get(account.id));
                 account.expire_at = old.expire_at;
                 account.last_updated = old.last_updated;
                 account.name = old.name;
@@ -68,6 +71,7 @@ export async function addAccount(account, cover = false) {
  * 按 id 删除账号
  * @param {string} id
  */
+// @ts-ignore
 export async function deleteAccount(id) {
     ;
 }
@@ -99,6 +103,7 @@ export async function updateUser(user) {
  * 按 id 删除用户
  * @param {string} id
  */
+// @ts-ignore
 export async function deleteUser(id) {
     ;
 }
@@ -130,6 +135,7 @@ export async function updateGroup(group) {
  * 按 id 删除分组
  * @param {string} id
  */
+// @ts-ignore
 export async function deleteGroup(id) {
     ;
 }
@@ -142,54 +148,65 @@ export async function getGroupList() {
     return await groupsDB.getAll();
 }
 
+// @ts-ignore
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { dst, type, data } = message;
     if (dst !== "sw") return;
-    /** @type {(promise: Promise, name: string) => Promise<void>} */
+    /** @type {(promise: Promise<any>, name: string) => Promise<void>} */
     const wrapper = (promise, name) => {
-        promise.then(sendResponse, err => {
+        return promise.then(sendResponse, err => {
             error(`service-worker.${name}`, err);
             sendResponse(null);
         });
     };
     switch (type) {
         case "query-pid": {
+            // @ts-ignore
             wrapper(queryPid(...data), "queryPid");
             return true;
         }
         case "add-account": {
+            // @ts-ignore
             wrapper(addAccount(...data), "addAccount");
             return true;
         }
         case "delete-account": {
+            // @ts-ignore
             wrapper(deleteAccount(...data), "deleteAccount");
             return true;
         }
         case "get-account-list": {
+            // @ts-ignore
             wrapper(getAccountList(...data), "getAccountList");
             return true;
         }
         case "update-user": {
+            // @ts-ignore
             wrapper(updateUser(...data), "updateUser");
             return true;
         }
         case "delete-user": {
+            // @ts-ignore
             wrapper(deleteUser(...data), "deleteUser");
             return true;
         }
         case "get-user-list": {
+            // @ts-ignore
             wrapper(getUserList(...data), "getUserList");
             return true;
         }
         case "update-group": {
+            // @ts-ignore
             wrapper(updateGroup(...data), "updateGroup");
             return true;
         }
         case "delete-group": {
+            // @ts-ignore
             wrapper(deleteGroup(...data), "deleteGroup");
             return true;
         }
         case "get-group-list": {
+            // @ts-ignore
             wrapper(getGroupList(...data), "getGroupList");
             return true;
         }
@@ -203,6 +220,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     account.last_updated = undefined;
                     newAccounts.push([account.id, account]);
                 }
+                // @ts-ignore
                 await accountsDB.setMany(newAccounts);
             })(), "debug:expire-all");
             return true;

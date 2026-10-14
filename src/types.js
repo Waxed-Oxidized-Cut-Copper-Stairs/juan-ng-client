@@ -3,7 +3,7 @@
 /**
  * @typedef {"lg" | "at" | "cf" | "uoj" | "qoj"} Platform
  * @typedef {{
- *   id: string,
+ *   id: InternalID,
  *   platform: Platform,
  *   uid: string,
  *   name?: string,
@@ -11,23 +11,26 @@
  *   expire_at?: number | null
  * }} Account
  * @typedef {{
- *   id: string,
- *   accounts: string[],
+ *   id: InternalID,
+ *   accounts: InternalID[],
  *   display_name: {
  *     type: ("follow" | "fixed"),
  *     value: string
  *   }
  * }} User
  * @typedef {{
- *   id: string,
+ *   id: InternalID,
  *   name: string,
- *   members: string[]
+ *   members: InternalID[]
  * }} Group
  */
 
 /**
+ * @typedef {string & {__brand_name: "PID"}} PID
+ * @typedef {string & {__brand_name: "InternalID"}} InternalID
+ * @typedef {string & {__brand_name: "DisplayID"}} DisplayID
  * @typedef {{
- *   passed: string[],
- *   submitted: string[]
+ *   passed: InternalID[],
+ *   submitted: InternalID[]
  * }} ProblemRecord
  */
