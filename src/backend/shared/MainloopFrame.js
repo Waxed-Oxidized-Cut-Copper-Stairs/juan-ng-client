@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { sleep } from "../../shared/asyncio";
+import { SeizeLock, sleep } from "../../shared/asyncio";
 import { error, log, warning } from "../../shared/core";
 import { accountsDB } from "./ItemDB";
 
@@ -30,6 +30,7 @@ export class MainloopFrame {
     #lastCrawl = 0;
     #mainloopBusy = false;
     #mainloopPending = false;
+    #lock;
     /**
      * @param {Platform} platform
      * @param {(account: Account) => string} urlConstructor
@@ -45,6 +46,13 @@ export class MainloopFrame {
         this.#durationConfig = durationConfig;
         this.#gap = gap;
         this.#timeout = timeout;
+        this.#lock = new SeizeLock();
+    }
+    async #sleep() {
+        const now = Date.now();
+        if (now - this.#lastCrawl < this.#gap) {
+            await sleep(this.#gap - (now - this.#lastCrawl));
+        }
     }
     async #mainloop() {
         await accountsDB.init();
@@ -81,43 +89,82 @@ export class MainloopFrame {
             if ((typeof account.expire_at === "number" && account.expire_at > now) || account.expire_at === null) {
                 continue;
             }
-            if (now - this.#lastCrawl < this.#gap) {
-                await sleep(this.#gap - (now - this.#lastCrawl));
+            await this.#lock.acquire();
+            try {
+                await this.#sleep();
+                const abort = new AbortController();
+                const timerId = setTimeout(() => abort.abort(), this.#timeout);
+                try {
+                    const url = this.#urlConstructor(account);
+                    log(`MainloopFrame(${this.#platform}).fetch`, url);
+                    await fetch(url, { signal: abort.signal }).then(
+                        async (resp) => {
+                            if (resp.ok) {
+                                try {
+                                    reportOK(await this.#handler(structuredClone(account), resp));
+                                } catch (err) {
+                                    error(`MainloopFrame(${this.#platform}).#handler`, err);
+                                    reportFAIL(account);
+                                }
+                            } else {
+                                warning(`MainloopFrame(${this.#platform}).fetch`, `HTTP ${resp.status} ${resp.statusText}`);
+                                reportFAIL(account);
+                                await resp.body?.cancel();
+                            }
+                        },
+                        async (err) => {
+                            error(`MainloopFrame(${this.#platform}).fetch-reject`, err);
+                            reportFAIL(account);
+                        }
+                    );
+                } catch (err) {
+                    error(`MainloopFrame(${this.#platform}).fetch`, err);
+                    reportFAIL(account);
+                } finally {
+                    this.#lastCrawl = Date.now();
+                    if (!abort.signal.aborted) clearTimeout(timerId);
+                }
+            } finally {
+                this.#lock.release();
             }
+        }
+        await accountsDB.setMany(update.map((account) => [account.id, account]));
+    }
+    /**
+     * 抢占执行一个 API 请求，仍受 gap 限制频率
+     * 实际上是高低两个优先级排队，无法打断正在执行的任务
+     * 此函数返回的 Promise 在 callback 执行完毕或发生内部错误时 resolve
+     * @param {string} url
+     * @param {(resp: Response) => Promise<void>} callback
+     */
+    async seize(url, callback) {
+        await this.#lock.seize();
+        try {
+            await this.#sleep();
             const abort = new AbortController();
             const timerId = setTimeout(() => abort.abort(), this.#timeout);
             try {
-                const url = this.#urlConstructor(account);
-                log(`MainloopFrame(${this.#platform}).fetch`, url);
                 await fetch(url, { signal: abort.signal }).then(
                     async (resp) => {
                         if (resp.ok) {
-                            try {
-                                reportOK(await this.#handler(structuredClone(account), resp));
-                            } catch (err) {
-                                error(`MainloopFrame(${this.#platform}).#handler`, err);
-                                reportFAIL(account);
-                            }
+                            await callback(resp);
                         } else {
-                            warning(`MainloopFrame(${this.#platform}).fetch`, `HTTP ${resp.status} ${resp.statusText}`);
-                            reportFAIL(account);
                             await resp.body?.cancel();
                         }
                     },
                     async (err) => {
-                        error(`MainloopFrame(${this.#platform}).fetch-reject`, err);
-                        reportFAIL(account);
+                        error(`MainloopFrame(${this.#platform}).seize-reject`, err);
                     }
                 );
             } catch (err) {
-                error(`MainloopFrame(${this.#platform}).fetch`, err);
-                reportFAIL(account);
+                error(`MainloopFrame(${this.#platform}).seize`, err);
             } finally {
                 this.#lastCrawl = Date.now();
                 if (!abort.signal.aborted) clearTimeout(timerId);
             }
+        } finally {
+            this.#lock.release();
         }
-        await accountsDB.setMany(update.map((account) => [account.id, account]));
     }
     /**
      * @note 不应该尝试等待此函数返回的 Promise

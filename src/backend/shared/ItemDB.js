@@ -59,6 +59,7 @@ export class ItemDB {
     }
     /**
      * 生成新 id，对应的值需要通过 set 存入
+     * 为处理竞态关系，此函数是同步函数，生成后应当调用 syncmeta 同步元数据
      * @returns {string}
      */
     generate() {
