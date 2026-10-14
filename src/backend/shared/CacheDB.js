@@ -60,7 +60,7 @@ export class CacheDB {
      */
     /**
      * @param {string | string[]} key
-     * @returns {Promise<T | undefined | Record.<string, T | undefined>>}
+     * @returns {Promise<T | undefined | Record<string, T | undefined>>}
      */
     async get(key) {
         return new Promise((resolve, reject) => {
@@ -70,8 +70,12 @@ export class CacheDB {
                 tx.oncomplete = () => resolve(req.result);
             } else {
                 const obj = tx.objectStore(this.#storekey);
-                const reqs = key.map((x) => obj.get(x));
-                tx.oncomplete = () => resolve(reqs.map((x) => x.result));
+                const result = {};
+                for (const x of key) {
+                    const req = obj.get(x);
+                    req.onsuccess = () => { result[x] = req.result; };
+                }
+                tx.oncomplete = () => resolve(result);
             }
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);

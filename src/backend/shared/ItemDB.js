@@ -139,8 +139,12 @@ export class ItemDB {
                 tx.oncomplete = () => resolve(req.result);
             } else {
                 const obj = tx.objectStore(this.#storekey);
-                const reqs = id.map((x) => obj.get(x));
-                tx.oncomplete = () => resolve(reqs.map((x) => x.result));
+                const result = {};
+                for (const x of id) {
+                    const req = obj.get(x);
+                    req.onsuccess = () => { result[x] = req.result; };
+                }
+                tx.oncomplete = () => resolve(result);
             }
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);
