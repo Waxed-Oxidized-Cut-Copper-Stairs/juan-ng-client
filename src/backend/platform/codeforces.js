@@ -108,7 +108,7 @@ async function handler(account, resp) {
         passed: Array.from(passed.values()),
         submitted: Array.from(submitted.values())
     };
-    update(account.uid, ret);
+    update(account.id, ret);
     await db.init();
     await db.set(account.uid, ret);
     return account;
