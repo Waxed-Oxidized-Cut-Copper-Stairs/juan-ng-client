@@ -1,0 +1,30 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+.mask {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background-color: rgba(0, 0, 0, 0.45);
+    transition: opacity 0.15s ease-in-out;
+}
+
+.popup {
+    position: relative;
+    min-width: 240px;
+    max-width: min(90vw, 560px);
+    max-height: 85vh;
+    border-radius: 3px;
+    padding: 10px;
+    background-color: var(--background);
+    overflow: auto;
+    cursor: default;
+    transition: transform 0.15s ease-in-out;
+}
