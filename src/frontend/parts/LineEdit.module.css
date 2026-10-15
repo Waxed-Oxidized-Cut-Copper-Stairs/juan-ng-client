@@ -1,0 +1,15 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+.for_search {
+    display: block;
+    width: 100%;
+    margin: 3px 0;
+    border: 1px solid var(--frame);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1.25em;
+}
+
+.for_search:focus {
+    outline-color: var(--focused-blue);
+}
