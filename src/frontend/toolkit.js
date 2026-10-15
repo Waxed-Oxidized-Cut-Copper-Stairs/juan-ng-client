@@ -48,6 +48,7 @@ function mergeClassName(...classNames) {
 /**
  * 从洛谷链接解析题目 PID
  * @param {string | null} [href=null]
+ * @returns {PID}
  */
 export function getPid(href = null) {
     try {
