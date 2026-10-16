@@ -7,30 +7,31 @@ import { fmtPlatformName } from "../../shared/fmt";
 import styles from "./AccountsPanel.module.css";
 import { subscribe } from "../bus";
 
-/**
- * @param {Object} options
- * @param {Account} options.account
- * @param {boolean} options.checked
- */
-const AccountBadge = memo(function AccountBadge({ account, checked }) {
-    return (
-        <div
-            className={styles.badge}
-            data-platform={account.platform}
-            data-account-id={account.id}
-            data-checked={checked}>
-            <div className={styles.split}>
-                <div className={styles.circle} data-checked={checked} />
-                <strong>{account.name ?? `${account.platform}@${account.uid}`}</strong>
+const AccountBadge = memo(
+    /**
+     * @param {Object} options
+     * @param {Account} options.account
+     * @param {boolean} options.checked
+     */
+    function AccountBadge({ account, checked }) {
+        return (
+            <div
+                className={styles.badge}
+                data-platform={account.platform}
+                data-account-id={account.id}
+                data-checked={checked}>
+                <div className={styles.split}>
+                    <div className={styles.circle} data-checked={checked} />
+                    <strong>{account.name ?? `${account.platform}@${account.uid}`}</strong>
+                </div>
+                <div className={styles.info}>
+                    <div>{`#${account.id}`} {fmtPlatformName(account.platform)}</div>
+                    <div>{`上次更新于 ${account.last_updated}`}</div>
+                    <div>{`将过期于 ${account.expire_at}`}</div>
+                </div>
             </div>
-            <div className={styles.info}>
-                <div>{`#${account.id}`} {fmtPlatformName(account.platform)}</div>
-                <div>{`上次更新于 ${account.last_updated}`}</div>
-                <div>{`将过期于 ${account.expire_at}`}</div>
-            </div>
-        </div>
-    )
-});
+        )
+    });
 
 export default function AccountsPanel({ busId }) {
     const [accounts, setAccounts] = useState([]);
