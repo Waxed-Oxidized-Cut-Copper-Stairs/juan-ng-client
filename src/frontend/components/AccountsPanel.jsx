@@ -6,6 +6,7 @@ import { getAccountList } from "../protocol";
 import { fmtPlatformName } from "../../shared/fmt";
 import styles from "./AccountsPanel.module.css";
 import { subscribe } from "../bus";
+import TimeLabel from "../parts/TimeLabel";
 
 const AccountBadge = memo(
     /**
@@ -26,8 +27,8 @@ const AccountBadge = memo(
                 </div>
                 <div className={styles.info}>
                     <div>{`#${account.id}`} {fmtPlatformName(account.platform)}</div>
-                    <div>{`上次更新于 ${account.last_updated}`}</div>
-                    <div>{`将过期于 ${account.expire_at}`}</div>
+                    <div>上次更新于 <TimeLabel ms={account.last_updated} /></div>
+                    <div>将过期于 <TimeLabel ms={account.expire_at} /></div>
                 </div>
             </div>
         )

@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { formatDistanceToNowStrict } from "date-fns";
+import { zhCN } from "date-fns/locale";
+
 /** @param {Platform} platform */
 function fmtPlatformName(platform) {
     if (platform === "at") return "AtCoder";
@@ -10,4 +13,9 @@ function fmtPlatformName(platform) {
     return "Unknown Platform";
 }
 
-export { fmtPlatformName };
+/** @param {number} t */
+function fmtTimeStamp(t) {
+    return formatDistanceToNowStrict(new Date(t), { addSuffix: true, includeSeconds: true, locale: zhCN });
+}
+
+export { fmtPlatformName, fmtTimeStamp };

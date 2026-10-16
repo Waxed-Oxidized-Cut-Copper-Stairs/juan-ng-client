@@ -1,0 +1,18 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+.main {
+    position: relative;
+}
+
+.float {
+    position: absolute;
+    left: 0;
+    top: 0;
+    line-height: 1;
+    border: 1px solid var(--frame);
+    border-radius: 3px;
+    padding: 1px 3px;
+    background-color: var(--card-background);
+    white-space: nowrap;
+    pointer-events: none;
+}
