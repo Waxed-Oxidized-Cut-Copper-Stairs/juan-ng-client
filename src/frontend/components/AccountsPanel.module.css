@@ -35,6 +35,7 @@
     height: 95px;
     cursor: pointer;
     transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    user-select: none;
 }
 
 .badge[data-platform="at"] {

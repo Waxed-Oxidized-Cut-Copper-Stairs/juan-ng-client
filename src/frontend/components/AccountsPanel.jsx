@@ -91,7 +91,7 @@ export default function AccountsPanel({ busId }) {
         if (e.button !== 0) return;
         const el = e.target.closest("[data-account-id]");
         if (!el) return;
-        e.preventDefault();
+        // e.preventDefault();
         const id = Number(el.dataset.accountId);
         const value = !selectedRef.current[id];
         dragRef.current = { active: true, value };
