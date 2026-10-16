@@ -4,27 +4,25 @@ import { StrictMode, useEffect, useId, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import AccountsPanel from "../components/AccountsPanel";
 import styles from "./management.module.css";
-import { bus } from "../bus";
+import { emit } from "../bus";
 
 export default function Main() {
     const [tab, setTab] = useState("accounts");
     const lastTab = useRef(null);
-    const accountsBusId = useId();
-    const groupsBusId = useId();
-    const toolBusId = useId();
-    const helpBusId = useId();
-    const aboutBusId = useId();
+    const selfId = useId();
     useEffect(() => {
         if (lastTab.current === tab) return;
-        const busIdMap = {
-            accounts: accountsBusId,
-            groups: groupsBusId,
-            tool: toolBusId,
-            help: helpBusId,
-            about: aboutBusId,
+        const mp = {
+            accounts: "AccountsPanel",
+            groups: "!undefined",
+            tool: "!undefined",
+            help: "!undefined",
+            about: "!undefined",
         };
-        if (lastTab.current) bus.emit(`${busIdMap[lastTab.current]}.unfocus`);
-        bus.emit(`${busIdMap[tab]}.focus`);
+        if (lastTab.current) {
+            emit(`${selfId}.${mp[lastTab.current]}.unfocus`);
+        }
+        emit(`${selfId}.${mp[tab]}.focus`);
         lastTab.current = tab;
     }, [tab]);
     return (
@@ -54,7 +52,7 @@ export default function Main() {
             </nav>
             <main className={styles.body}>
                 <div className={styles.page} style={{ display: (tab == "accounts" ? "" : "none") }}>
-                    <AccountsPanel busId={accountsBusId} />
+                    <AccountsPanel busId={selfId} />
                 </div>
             </main>
         </div>

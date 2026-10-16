@@ -5,7 +5,7 @@ import LineEdit, { LineEditStyledForSearch } from "../parts/LineEdit";
 import { getAccountList } from "../protocol";
 import { fmtPlatformName } from "../../shared/fmt";
 import styles from "./AccountsPanel.module.css";
-import { bus } from "../bus";
+import { subscribe } from "../bus";
 
 /**
  * @param {Object} options
@@ -116,12 +116,12 @@ export default function AccountsPanel({ busId }) {
     useEffect(() => {
         const abort = new AbortController();
         const stop = () => { dragRef.current.active = false; };
-        bus.on(`${busId}.focus`, focusOn);
+        const unload = subscribe(`${busId}.AccountsPanel.focus`, focusOn);
         window.addEventListener("mouseup", stop, { signal: abort.signal });
         window.addEventListener("blur", stop, { signal: abort.signal });
         return () => {
             abort.abort();
-            bus.off(`${busId}.focus`, focusOn);
+            unload();
         };
     }, [focusOn]);
     return (
