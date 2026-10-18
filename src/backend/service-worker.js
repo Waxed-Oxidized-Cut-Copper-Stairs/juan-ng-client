@@ -127,6 +127,9 @@ export async function updateGroup(group) {
         await groupsDB.init();
         group.id = groupsDB.generate();
         await groupsDB.syncmeta();
+        const order = await getGroupOrder();
+        order.push(group.id);
+        await setGroupOrder(order);
     }
     await groupsDB.set(group.id, group);
     return group;
@@ -146,6 +149,21 @@ export async function deleteGroup(id) {
 export async function getGroupList() {
     await groupsDB.init();
     return await groupsDB.getAll();
+}
+
+/**
+ * 获取分组排列顺序
+ * @returns {Promise<InternalID[]>}
+ */
+export async function getGroupOrder() {
+    return (await chrome.storage.local.get(["order"])).order;
+}
+/**
+ * 设置分组排列顺序
+ * @param {InternalID[]} order
+ */
+export async function setGroupOrder(order) {
+    await chrome.storage.local.set({ order });
 }
 
 // @ts-ignore
@@ -208,6 +226,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "get-group-list": {
             // @ts-ignore
             wrapper(getGroupList(...data), "getGroupList");
+            return true;
+        }
+        case "get-group-order": {
+            wrapper(getGroupOrder(...data), "getGroupOrder");
+            return true;
+        }
+        case "set-group-order": {
+            wrapper(setGroupOrder(...data), "setGroupOrder");
             return true;
         }
         case "debug:expire-all": {

@@ -59,4 +59,13 @@ async function getGroupList() {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "get-group-list", data: [] }), "getGroupList");
 }
 
-export { queryPid, addAccount, deleteAccount, getAccountList, updateUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList };
+/** @type {typeof import("../backend/service-worker").getGroupOrder} */
+async function getGroupOrder() {
+    return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "get-group-order", data: [] }), "getGroupOrder");
+}
+/** @type {typeof import("../backend/service-worker").setGroupOrder} */
+async function setGroupOrder(order) {
+    return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "set-group-order", data: [order] }), "setGroupOrder");
+}
+
+export { queryPid, addAccount, deleteAccount, getAccountList, updateUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList, getGroupOrder, setGroupOrder };
