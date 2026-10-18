@@ -5,6 +5,6 @@ import styles from "./Button.module.css";
 
 export function Button({ children, onClick, className, ...rest }) {
     return (
-        <button onClick={onClick} className={mergeClassName(styles.button, className)} {...rest}>{children}</button>
+        <button onClick={(e) => { onClick(); e.stopPropagation(); }} className={mergeClassName(styles.button, className)} {...rest}>{children}</button>
     )
 }
