@@ -6,7 +6,7 @@ import { getPid } from "../toolkit";
 import { createPortal } from "react-dom";
 import { ShadowRoot } from "../parts/ShadowRoot";
 import cssText from "virtual:shadow-css";
-import { ProblemStatisticServer } from "../components/ProblemStatisticServer";
+import { ProblemStatisticServer } from "../parts/ProblemStatisticServer";
 import { GroupView } from "../components/GroupView";
 
 function StyleSheetLoader() {
