@@ -6,7 +6,7 @@ import { getAccountList } from "../protocol";
 import { fmtPlatformName } from "../../shared/fmt";
 import styles from "./AccountsPanel.module.css";
 import { subscribe } from "../bus";
-import TimeLabel from "../parts/TimeLabel";
+import { TimeLabel } from "../parts/TimeLabel";
 
 const AccountBadge = memo(
     /**

@@ -9,7 +9,7 @@ import styles from "./TimeLabel.module.css";
  * @param {Object} options
  * @param {number} options.ms
  */
-export default function TimeLabel({ ms }) {
+export function TimeLabel({ ms }) {
     const [raw, setRaw] = useState(false);
     return (
         <span
