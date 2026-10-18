@@ -3,11 +3,12 @@
 import { StrictMode, useEffect, useId, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import AccountsPanel from "../components/AccountsPanel";
+import { GroupsPanel } from "../components/GroupsPanel";
 import styles from "./management.module.css";
 import { emit } from "../bus";
 
 export default function Main() {
-    const [tab, setTab] = useState("accounts");
+    const [tab, setTab] = useState("groups");
     const lastTab = useRef(null);
     const selfId = useId();
     useEffect(() => {
@@ -53,6 +54,9 @@ export default function Main() {
             <main className={styles.body}>
                 <div className={styles.page} style={{ display: (tab == "accounts" ? "" : "none") }}>
                     <AccountsPanel busId={selfId} />
+                </div>
+                <div className={styles.page} style={{ display: (tab == "groups" ? "" : "none") }}>
+                    <GroupsPanel busId={selfId} />
                 </div>
             </main>
         </div>
