@@ -11,7 +11,7 @@
     height: 100%;
     border: 1px solid var(--frame);
     border-radius: 3px;
-    padding: 1px 3px;
+    padding: 0 3px;
     background-color: var(--card-background);
     white-space: nowrap;
     pointer-events: none;
