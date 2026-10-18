@@ -140,7 +140,7 @@ export async function deleteGroup(id) {
     ;
 }
 /**
- * 获取用户列表
+ * 获取分组列表
  * @returns {Promise<Group[]>}
  */
 export async function getGroupList() {
