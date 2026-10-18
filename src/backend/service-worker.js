@@ -156,7 +156,7 @@ export async function getGroupList() {
  * @returns {Promise<InternalID[]>}
  */
 export async function getGroupOrder() {
-    return (await chrome.storage.local.get(["order"])).order;
+    return (await chrome.storage.local.get(["order"])).order ?? [];
 }
 /**
  * 设置分组排列顺序
