@@ -96,13 +96,14 @@ export function SingleGroupView({ pid, group, accounts, users, passed, submitted
  * @param {PID} options.pid
  * @param {Map<InternalID, Account>} options.accounts
  * @param {Map<InternalID, User>} options.users
- * @param {Group[]} options.groups
+ * @param {Map<InternalID, Group>} options.groups
+ * @param {InternalID[]} options.order
  * @param {Set<InternalID>} options.passed
  * @param {Set<InternalID>} options.submitted
  */
-export function GroupView({ children, pid, accounts, users, groups, passed, submitted }) {
+export function GroupView({ children, pid, accounts, users, groups, order, passed, submitted }) {
     let cntAC = 0, cntWA = 0, cntNA = 0, tot = 0;
-    for (const group of groups) {
+    for (const [_, group] of groups) {
         tot += group.members.length;
         const { cntAC: ac, cntWA: wa, cntNA: na } = countForGroup({ group, accounts, users, passed, submitted });
         cntAC += ac;
@@ -118,7 +119,9 @@ export function GroupView({ children, pid, accounts, users, groups, passed, subm
                 </div>
             </div>
             <div>
-                {groups.map((group, idx, arr) => {
+                {order.map((ord) => {
+                    const group = groups.get(ord);
+                    if (!group) return;
                     return <SingleGroupView key={group.id} pid={pid} group={group} accounts={accounts} users={users} passed={passed} submitted={submitted} />
                 })}
             </div>

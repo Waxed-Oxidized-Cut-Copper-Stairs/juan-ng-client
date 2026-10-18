@@ -172,9 +172,10 @@ function SingleGroup({ group, accounts, users }) {
  * @param {Object} options
  * @param {Map<InternalID, Account>} options.accounts
  * @param {Map<InternalID, User>} options.users
- * @param {Group[]} options.groups
+ * @param {Map<InternalID, Group>} options.groups
+ * @param {InternalID[]} options.order
  */
-function Main({ busId, accounts, users, groups }) {
+function Main({ busId, accounts, users, groups, order }) {
     const [searchText, setSearchText] = useState("");
     const [errorText, setErrorText] = useState("");
     /** @type {UseState<Account[]>} */
@@ -222,7 +223,9 @@ function Main({ busId, accounts, users, groups }) {
             </div>
             <div className={styles.body}>
                 <div className={styles.container}>
-                    {groups.map((group, idx, arr) => {
+                    {order.map((ord) => {
+                        const group = groups.get(ord);
+                        if (!group) return;
                         return <SingleGroup key={group.id} group={group} accounts={accounts} users={realUsers} />
                     })}
                 </div>
