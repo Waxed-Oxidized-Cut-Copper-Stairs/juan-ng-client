@@ -7,7 +7,7 @@
  *   platform: Platform,
  *   uid: string,
  *   name?: string,
- *   last_updated?: number | null,
+ *   last_updated?: number,
  *   expire_at?: number | null
  * }} Account
  * @typedef {{
