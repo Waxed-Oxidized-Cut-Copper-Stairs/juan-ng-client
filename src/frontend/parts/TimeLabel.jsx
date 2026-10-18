@@ -16,9 +16,7 @@ export function TimeLabel({ ms }) {
             className={styles.main}
             onMouseEnter={() => setRaw(true)}
             onMouseLeave={() => setRaw(false)}>
-            <span style={{ visibility: raw ? "hidden" : "visible" }}>
-                {fmtTimeStamp(ms)}
-            </span>
+            {fmtTimeStamp(ms)}
             {raw && (
                 <div className={styles.float}>
                     <span>
