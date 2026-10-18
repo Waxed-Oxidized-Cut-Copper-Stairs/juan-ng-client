@@ -2,60 +2,34 @@
 
 import { cloneElement, isValidElement, useCallback, useEffect, useState } from "react";
 import { subscribe } from "../bus";
-import { getAccountList, getGroupList, getUserList, queryPid } from "../protocol";
+import { queryPid } from "../protocol";
 
 /**
  * @param {Object} options
  * @param {PID} options.pid
  */
-export function ProblemStatisticServer({ children, pid }) {
-    /** @type {UseState<Map<InternalID, Account>>} */
-    const [accounts, setAccounts] = useState(new Map());
-    /** @type {UseState<Map<InternalID, User>>} */
-    const [users, setUsers] = useState(new Map());
-    /** @type {UseState<Group[]>} */
-    const [groups, setGroups] = useState([]);
+export function ProblemStatisticServer({ children, pid, ...rest }) {
     /** @type {UseState<Set<InternalID>>} */
     const [passed, setPassed] = useState(new Set());
     /** @type {UseState<Set<InternalID>>} */
     const [submitted, setSubmitted] = useState(new Set());
-    const updateMeta = useCallback(async () => {
-        const newAccounts = await getAccountList();
-        const newUsers = await getUserList();
-        const newGroups = await getGroupList();
-        const newAccountsMp = new Map();
-        const newUsersMp = new Map();
-        for (const account of newAccounts) {
-            newAccountsMp.set(account.id, account);
-        }
-        for (const user of newUsers) {
-            newUsersMp.set(user.id, user);
-        }
-        setAccounts(newAccountsMp);
-        setUsers(newUsersMp);
-        setGroups(newGroups);
-    }, []);
-    const updateData = useCallback(async () => {
+    const update = useCallback(async () => {
         const { passed: newPassed, submitted: newSubmitted } = await queryPid(pid);
         setPassed(new Set(newPassed));
         setSubmitted(new Set(newSubmitted));
     }, []);
     useEffect(() => {
-        updateMeta();
-        updateData();
+        update();
         const abort = new AbortController();
         document.addEventListener("visibilitychange", () => {
-            updateMeta();
-            updateData();
+            update();
         }, { signal: abort.signal });
-        const unload1 = subscribe("profile", () => updateMeta());
-        const unload2 = subscribe("problem", () => updateData());
+        const unload = subscribe("problem", () => update());
         return () => {
             abort.abort();
-            unload1();
-            unload2();
+            unload();
         }
-    }, [updateMeta, updateData]);
+    }, [update]);
     if (!isValidElement(children)) throw new Error("ProblemStatisticServer should have only one child.");
-    return cloneElement(children, { pid, accounts, users, groups, passed, submitted });
+    return cloneElement(children, { pid, passed, submitted, ...rest });
 }
