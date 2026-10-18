@@ -6,6 +6,8 @@ import { getPid } from "../toolkit";
 import { createPortal } from "react-dom";
 import { ShadowRoot } from "../parts/ShadowRoot";
 import cssText from "virtual:shadow-css";
+import { ProblemStatisticServer } from "../components/ProblemStatisticServer";
+import { GroupView } from "../components/GroupView";
 
 function StyleSheetLoader() {
     const nodeRef = useRef(null);
@@ -20,6 +22,14 @@ function Card({ pid }) {
     return (
         <>
             <StyleSheetLoader />
+            <ProblemStatisticServer pid={pid}>
+                <GroupView>
+                    <div>
+                        <strong style={{ fontSize: "18px" }}>卷王</strong>
+                        <span style={{ fontSize: "8px", verticalAlign: "bottom", padding: "0 3px" }}>v3</span>
+                    </div>
+                </GroupView>
+            </ProblemStatisticServer>
         </>
     )
 }
