@@ -1,0 +1,21 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+.button {
+    height: 20px;
+    margin: 0 3px;
+    border: 1px solid var(--frame);
+    border-radius: 5px;
+    background-color: var(--dim-background);
+    font-size: 12px;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.button:hover {
+    border-color: var(--hovered-frame);
+    background-color: var(--hovered-frame);
+}
+
+.button:active {
+    border-color: var(--focused-frame);
+    background-color: var(--card-background);
+}
