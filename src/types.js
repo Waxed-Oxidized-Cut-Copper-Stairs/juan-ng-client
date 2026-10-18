@@ -34,3 +34,8 @@
  *   submitted: InternalID[]
  * }} ProblemRecord
  */
+
+/**
+ * @template T
+ * @typedef {[T, import("react").Dispatch<import("react").SetStateAction<T>>]} UseState
+ */
