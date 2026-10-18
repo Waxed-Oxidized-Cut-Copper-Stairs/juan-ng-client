@@ -3,6 +3,26 @@
 /** @param {number} t */
 export async function sleep(t) { await new Promise(r => setTimeout(r, t)); }
 
+export class Lock {
+    #busy;
+    #q;
+    constructor() {
+        this.#busy = false;
+        this.#q = [];
+    }
+    async acquire() {
+        if (!this.#busy) {
+            this.#busy = true;
+            return Promise.resolve();
+        }
+        return new Promise(resolve => { this.#q.push(resolve); });
+    }
+    release() {
+        if (this.#q.length > 0) this.#q.shift()();
+        else this.#busy = false;
+    }
+}
+
 export class SeizeLock {
     #busy;
     #q1;
