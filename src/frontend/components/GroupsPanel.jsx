@@ -9,6 +9,7 @@ import { MetaDataServer } from "../parts/MetaDataServer";
 import { Button } from "../parts/Button";
 import styles from "./GroupsPanel.module.css";
 import { LuDownload, LuFolderPlus, LuGripVertical, LuListCheck, LuListPlus, LuRefreshCw, LuTrash2, LuUpload, LuUserPlus } from "react-icons/lu";
+import { deleteGroup, updateGroup } from "../protocol";
 
 /**
  * @param {Object} options
@@ -121,6 +122,9 @@ function SingleGroup({ group, accounts, users }) {
     const [fold, setFold] = useState(false);
     const bodyRef = useRef(null);
     const svgRef = useRef(null);
+    const deleteSelf = useCallback(async () => {
+        await deleteGroup(group.id);
+    }, []);
     useEffect(() => {
         if (fold) {
             bodyRef.current.style.display = "none";
@@ -154,7 +158,7 @@ function SingleGroup({ group, accounts, users }) {
                 </div>
                 <Button><LuListCheck size={15} /></Button>
                 <Button><LuUserPlus size={15} /></Button>
-                <Button className={styles.danger}><LuTrash2 size={15} /></Button>
+                <Button className={styles.danger} onClick={deleteSelf}><LuTrash2 size={15} /></Button>
             </div>
             <div ref={bodyRef} className={styles.group_body}>
                 {group.members.map((userId, idx, arr) => {
@@ -190,6 +194,9 @@ function Main({ busId, accounts, users, groups, order }) {
         input.focus();
         input.select();
     }, []);
+    const addGroup = useCallback(async () => {
+        await updateGroup({ name: "新分组", members: [] });
+    }, []);
     useEffect(() => {
         if (!searchText) {
             setRealUsers(users);
@@ -217,7 +224,7 @@ function Main({ busId, accounts, users, groups, order }) {
                             onReturn={attemptAdd} />
                     </LineEditStyledForSearch>
                 </div>
-                <Button className={styles.header_button}><LuFolderPlus size={24} /></Button>
+                <Button className={styles.header_button} onClick={addGroup}><LuFolderPlus size={24} /></Button>
                 <Button className={styles.header_button}><LuUpload size={24} /></Button>
                 <Button className={styles.header_button}><LuDownload size={24} /></Button>
             </div>
