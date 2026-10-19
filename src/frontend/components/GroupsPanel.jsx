@@ -9,7 +9,7 @@ import { MetaDataServer } from "../parts/MetaDataServer";
 import { Button } from "../parts/Button";
 import styles from "./GroupsPanel.module.css";
 import { LuDownload, LuFolderPlus, LuGripVertical, LuListCheck, LuListPlus, LuRefreshCw, LuTrash2, LuUpload, LuUserPlus } from "react-icons/lu";
-import { attachUser, deleteGroup, updateGroup } from "../protocol";
+import { attachUser, deleteGroup, deleteUser, updateGroup } from "../protocol";
 
 /**
  * @param {Object} options
@@ -63,6 +63,13 @@ export function SingleUser({ user, accounts }) {
     const [fold, setFold] = useState(false);
     const bodyRef = useRef(null);
     const svgRef = useRef(null);
+    const addAccount = useCallback(async () => {
+        // 写一个弹出窗口，选择账号或者新建一个
+        ;
+    }, [user]);
+    const deleteSelf = useCallback(async () => {
+        await deleteUser(user.id);
+    }, [user]);
     useEffect(() => {
         /** @type {HTMLDivElement} */
         const body = bodyRef.current;
@@ -98,8 +105,8 @@ export function SingleUser({ user, accounts }) {
                     <span className={styles.info}>#{user.id}</span>
                     {user.display_name.value}
                 </div>
-                <Button><LuListPlus size={15} /></Button>
-                <Button className={styles.danger}><LuTrash2 size={15} /></Button>
+                <Button><LuListPlus onClick={addAccount} size={15} /></Button>
+                <Button className={styles.danger} onClick={deleteSelf}><LuTrash2 size={15} /></Button>
             </div>
             <div ref={bodyRef} className={styles.user_body}>
                 {user.accounts.map((accountId, idx, arr) => {

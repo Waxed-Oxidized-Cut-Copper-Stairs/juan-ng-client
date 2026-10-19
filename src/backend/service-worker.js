@@ -99,7 +99,7 @@ export async function addAccount(account, cover = false) {
     }
 }
 /**
- * 按 id 删除账号
+ * 按 id 删除账号，同时删除用户的所有引用，以及缓存的数据
  * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
@@ -172,12 +172,31 @@ export async function attachUser(user, groupId) {
     }
 }
 /**
- * 按 id 删除用户
+ * 按 id 删除用户，同时删除所有分组中的引用
  * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
 export async function deleteUser(id) {
-    ;
+    await writeLock.acquire();
+    try {
+        await groupsDB.init();
+        const groups = await groupsDB.getAll();
+        /** @type {[InternalID, Group][]} */
+        const upd = [];
+        for (const group of groups) {
+            const idx = group.members.indexOf(id);
+            if (idx !== -1) {
+                group.members.splice(idx, 1);
+                upd.push([group.id, group]);
+            }
+        }
+        if (upd.length) await groupsDB.setMany(upd);
+        await usersDB.init();
+        await usersDB.del(id);
+        emitMetaChange();
+    } finally {
+        writeLock.release();
+    }
 }
 /**
  * 获取用户列表
@@ -214,7 +233,7 @@ export async function updateGroup(group) {
     }
 }
 /**
- * 按 id 删除分组
+ * 按 id 删除分组，同时删除它在 order 中的位置
  * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
