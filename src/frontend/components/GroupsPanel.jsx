@@ -131,7 +131,7 @@ function SingleGroup({ group, accounts, users }) {
     }, [group]);
     const deleteSelf = useCallback(async () => {
         await deleteGroup(group.id);
-    }, []);
+    }, [group]);
     useEffect(() => {
         if (fold) {
             bodyRef.current.style.display = "none";
