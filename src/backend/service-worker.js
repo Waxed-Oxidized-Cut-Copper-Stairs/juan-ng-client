@@ -40,10 +40,10 @@ function sendToActiveTabs(payload) {
 }
 const emitMetaChange = throttle(() => {
     sendToActiveTabs({ dst: "tab", type: "meta-change" });
-});
+}, 20);
 const emitDataChange = throttle(() => {
     sendToActiveTabs({ dst: "tab", type: "data-change" });
-});
+}, 100);
 
 /**
  * 查询通过题号为 pid 的题目的账号
