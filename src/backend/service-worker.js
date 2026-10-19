@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { throttle } from "../shared/asyncio";
+import { Lock, throttle } from "../shared/asyncio";
 import { error } from "../shared/core";
 import * as codeforces from "./platform/codeforces";
 import { accountsDB, groupsDB, usersDB } from "./shared/ItemDB";
@@ -59,44 +59,57 @@ export async function queryPid(pid) {
     return { passed, submitted };
 }
 
+const writeLock = new Lock();
+
 /**
  * 添加账号，返回含 id 的账号
  * 重复添加会自动合并
+ * @note 此函数有全局写锁（不可重入）
  * @param {Account} account
  * @param {boolean} [cover=false] false 表示继承 expire_at last_updated 和 name
  * @returns {Promise<Account>}
  */
 export async function addAccount(account, cover = false) {
-    if (typeof account.id !== "string") {
-        await accountsDB.init();
-        await initAccountMap;
-        const uuid = parseAccountId(account);
-        if (accountIdMap.has(uuid)) {
-            account.id = /** @type {InternalID} */(accountIdMap.get(uuid));
-            if (!cover) {
-                const old = /** @type {Account} */(await accountsDB.get(account.id));
-                account.expire_at = old.expire_at;
-                account.last_updated = old.last_updated;
-                account.name = old.name;
+    await writeLock.acquire();
+    try {
+        if (typeof account.id !== "string") {
+            await accountsDB.init();
+            await initAccountMap;
+            const uuid = parseAccountId(account);
+            if (accountIdMap.has(uuid)) {
+                account.id = /** @type {InternalID} */(accountIdMap.get(uuid));
+                if (!cover) {
+                    const old = /** @type {Account} */(await accountsDB.get(account.id));
+                    account.expire_at = old.expire_at;
+                    account.last_updated = old.last_updated;
+                    account.name = old.name;
+                }
+            } else {
+                account.id = accountsDB.generate();
+                accountIdMap.set(uuid, account.id);
+                await accountsDB.syncmeta();
             }
-        } else {
-            account.id = accountsDB.generate();
-            accountIdMap.set(uuid, account.id);
-            await accountsDB.syncmeta();
         }
+        await accountsDB.set(account.id, account);
+        emitMetaChange();
+        activateMainloop();
+        return account;
+    } finally {
+        writeLock.release();
     }
-    await accountsDB.set(account.id, account);
-    emitMetaChange();
-    activateMainloop();
-    return account;
 }
 /**
  * 按 id 删除账号
+ * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
-// @ts-ignore
 export async function deleteAccount(id) {
-    ;
+    await writeLock.acquire();
+    try {
+        ;
+    } finally {
+        writeLock.release();
+    }
 }
 /**
  * 获取账号列表
@@ -110,24 +123,30 @@ export async function getAccountList() {
 /**
  * 更新用户信息，如果用户不存在则创建
  * 判断用户是否存在的依据是 user.id 是否设置
+ * @note 此函数有全局写锁（不可重入）
  * @param {User} user
  * @returns {Promise<User>}
  */
 export async function updateUser(user) {
-    if (typeof user.id !== "string") {
-        await usersDB.init();
-        user.id = usersDB.generate();
-        await usersDB.syncmeta();
+    await writeLock.acquire();
+    try {
+        if (typeof user.id !== "string") {
+            await usersDB.init();
+            user.id = usersDB.generate();
+            await usersDB.syncmeta();
+        }
+        await usersDB.set(user.id, user);
+        emitMetaChange();
+        return user;
+    } finally {
+        writeLock.release();
     }
-    await usersDB.set(user.id, user);
-    emitMetaChange();
-    return user;
 }
 /**
  * 按 id 删除用户
+ * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
-// @ts-ignore
 export async function deleteUser(id) {
     ;
 }
@@ -143,29 +162,44 @@ export async function getUserList() {
 /**
  * 更新分组信息，如果分组不存在则创建
  * 判断分组是否存在的依据是 group.id 是否设置
+ * @note 此函数有全局写锁（不可重入）
  * @param {Group} group
  * @returns {Promise<Group>}
  */
 export async function updateGroup(group) {
-    if (typeof group.id !== "string") {
-        await groupsDB.init();
-        group.id = groupsDB.generate();
-        await groupsDB.syncmeta();
-        const order = await getGroupOrder();
-        order.push(group.id);
-        await setGroupOrder(order);
+    await writeLock.acquire();
+    try {
+        if (typeof group.id !== "string") {
+            await groupsDB.init();
+            group.id = groupsDB.generate();
+            await groupsDB.syncmeta();
+            const order = await getGroupOrder();
+            order.push(group.id);
+            await _setGroupOrder(order);
+        }
+        await groupsDB.set(group.id, group);
+        emitMetaChange();
+        return group;
+    } finally {
+        writeLock.release();
     }
-    await groupsDB.set(group.id, group);
-    emitMetaChange();
-    return group;
 }
 /**
  * 按 id 删除分组
+ * @note 此函数有全局写锁（不可重入）
  * @param {string} id
  */
-// @ts-ignore
 export async function deleteGroup(id) {
-    ;
+    await writeLock.acquire();
+    try {
+        const order = await getGroupOrder();
+        await _setGroupOrder(order.filter((val) => val !== id));
+        await groupsDB.init();
+        await groupsDB.del(id);
+        emitMetaChange();
+    } finally {
+        writeLock.release();
+    }
 }
 /**
  * 获取分组列表
@@ -183,12 +217,15 @@ export async function getGroupList() {
 export async function getGroupOrder() {
     return (await chrome.storage.local.get(["order"])).order ?? [];
 }
+async function _setGroupOrder(order) {
+    await chrome.storage.local.set({ order });
+}
 /**
  * 设置分组排列顺序
  * @param {InternalID[]} order
  */
 export async function setGroupOrder(order) {
-    await chrome.storage.local.set({ order });
+    await _setGroupOrder(order);
     emitMetaChange();
 }
 
