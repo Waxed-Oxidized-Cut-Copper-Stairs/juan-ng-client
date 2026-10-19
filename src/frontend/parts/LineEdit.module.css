@@ -8,6 +8,8 @@
     border-radius: 8px;
     padding: 10px 20px;
     font-size: 16px;
+    outline: 1px solid transparent;
+    transition: outline-color 0.15s ease;
 }
 
 .for_search:focus {
