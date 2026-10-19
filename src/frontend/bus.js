@@ -23,3 +23,19 @@ export function subscribe(event, callback) {
 export function emit(event, payload) {
     bus.emit(event, payload);
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    const { dst, type, data } = message;
+    if (dst !== "tab") return;
+    switch (type) {
+        case "meta-change":
+            emit("meta");
+            break;
+        case "data-change":
+            emit("data");
+            break;
+        case "route":
+            emit("route", data);
+            break;
+    }
+});

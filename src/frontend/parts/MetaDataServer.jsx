@@ -41,7 +41,7 @@ export function MetaDataServer({ children, ...rest }) {
         document.addEventListener("visibilitychange", () => {
             update();
         }, { signal: abort.signal });
-        const unload = subscribe("profile", () => update());
+        const unload = subscribe("meta", () => update());
         return () => {
             abort.abort();
             unload();

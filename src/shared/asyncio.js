@@ -52,3 +52,31 @@ export class SeizeLock {
         else this.#busy = false;
     }
 }
+
+/**
+ * 作为节流器包装一个函数
+ * @param {() => void} fn
+ * @param {number} [wait=500]
+ */
+export function throttle(fn, wait = 500) {
+    let timer = null;
+    let pending = false;
+    function call() {
+        if (pending) {
+            pending = false;
+            fn();
+            timer = setTimeout(call, wait);
+        } else {
+            timer = null;
+        }
+    }
+    function throttled() {
+        if (timer === null) {
+            fn();
+            timer = setTimeout(call, wait);
+        } else {
+            pending = true;
+        }
+    }
+    return throttled;
+}

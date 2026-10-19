@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { throttle } from "../shared/asyncio";
 import { error } from "../shared/core";
 import * as codeforces from "./platform/codeforces";
 import { accountsDB, groupsDB, usersDB } from "./shared/ItemDB";
@@ -22,6 +23,27 @@ const initAccountMap = (async () => {
         accountIdMap.set(parseAccountId(account), account.id);
     }
 })();
+
+function sendToActiveTabs(payload) {
+    chrome.tabs.query({
+        active: true,
+        url: [
+            "https://www.luogu.com.cn/*",
+            "https://www.luogu.me/*"
+        ]
+    }).then(tabs => {
+        for (const tab of tabs) {
+            chrome.tabs.sendMessage(tab.id, payload).catch(err => null);
+        }
+        chrome.runtime.sendMessage(payload).catch(err => null);
+    }).catch(err => null);
+}
+const emitMetaChange = throttle(() => {
+    sendToActiveTabs({ dst: "tab", type: "meta-change" });
+});
+const emitDataChange = throttle(() => {
+    sendToActiveTabs({ dst: "tab", type: "data-change" });
+});
 
 /**
  * 查询通过题号为 pid 的题目的账号
@@ -64,6 +86,7 @@ export async function addAccount(account, cover = false) {
         }
     }
     await accountsDB.set(account.id, account);
+    emitMetaChange();
     activateMainloop();
     return account;
 }
@@ -97,6 +120,7 @@ export async function updateUser(user) {
         await usersDB.syncmeta();
     }
     await usersDB.set(user.id, user);
+    emitMetaChange();
     return user;
 }
 /**
@@ -132,6 +156,7 @@ export async function updateGroup(group) {
         await setGroupOrder(order);
     }
     await groupsDB.set(group.id, group);
+    emitMetaChange();
     return group;
 }
 /**
@@ -164,6 +189,7 @@ export async function getGroupOrder() {
  */
 export async function setGroupOrder(order) {
     await chrome.storage.local.set({ order });
+    emitMetaChange();
 }
 
 // @ts-ignore

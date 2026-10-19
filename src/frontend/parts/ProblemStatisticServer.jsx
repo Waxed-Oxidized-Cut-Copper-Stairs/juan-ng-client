@@ -24,7 +24,7 @@ export function ProblemStatisticServer({ children, pid, ...rest }) {
         document.addEventListener("visibilitychange", () => {
             update();
         }, { signal: abort.signal });
-        const unload = subscribe("problem", () => update());
+        const unload = subscribe("data", () => update());
         return () => {
             abort.abort();
             unload();
