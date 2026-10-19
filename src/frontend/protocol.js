@@ -37,6 +37,10 @@ async function getAccountList() {
 async function updateUser(user) {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "update-user", data: [user] }), "updateUser");
 }
+/** @type {typeof import("../backend/service-worker").attachUser} */
+async function attachUser(user, groupId) {
+    return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "attach-user", data: [user, groupId] }), "attachUser");
+}
 /** @type {typeof import("../backend/service-worker").deleteUser} */
 async function deleteUser(id) {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "delete-user", data: [id] }), "deleteUser");
@@ -68,4 +72,4 @@ async function setGroupOrder(order) {
     return wrapper(chrome.runtime.sendMessage({ dst: "sw", type: "set-group-order", data: [order] }), "setGroupOrder");
 }
 
-export { queryPid, addAccount, deleteAccount, getAccountList, updateUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList, getGroupOrder, setGroupOrder };
+export { queryPid, addAccount, deleteAccount, getAccountList, updateUser, attachUser, deleteUser, getUserList, updateGroup, deleteGroup, getGroupList, getGroupOrder, setGroupOrder };

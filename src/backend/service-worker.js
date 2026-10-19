@@ -121,6 +121,20 @@ export async function getAccountList() {
 }
 
 /**
+ * @param {User} user
+ * @returns {Promise<User>}
+ */
+async function _updateUser(user) {
+    if (typeof user.id !== "string") {
+        await usersDB.init();
+        user.id = usersDB.generate();
+        await usersDB.syncmeta();
+    }
+    await usersDB.set(user.id, user);
+    emitMetaChange();
+    return user;
+}
+/**
  * 更新用户信息，如果用户不存在则创建
  * 判断用户是否存在的依据是 user.id 是否设置
  * @note 此函数有全局写锁（不可重入）
@@ -130,14 +144,29 @@ export async function getAccountList() {
 export async function updateUser(user) {
     await writeLock.acquire();
     try {
-        if (typeof user.id !== "string") {
-            await usersDB.init();
-            user.id = usersDB.generate();
-            await usersDB.syncmeta();
+        return await _updateUser(user);
+    } finally {
+        writeLock.release();
+    }
+}
+/**
+ * updateUser 的封装，用于原子地添加用户和附加到分组上
+ * @note 此函数有全局写锁（不可重入）
+ * @param {User} user
+ * @param {InternalID} groupId
+ * @returns {Promise<User>}
+ */
+export async function attachUser(user, groupId) {
+    await writeLock.acquire();
+    try {
+        const ret = await _updateUser(user);
+        await groupsDB.init();
+        const group = await groupsDB.get(groupId);
+        if (!group.members.includes(ret.id)) {
+            group.members.push(ret.id);
+            await groupsDB.set(groupId, group);
         }
-        await usersDB.set(user.id, user);
-        emitMetaChange();
-        return user;
+        return ret;
     } finally {
         writeLock.release();
     }
@@ -264,6 +293,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "update-user": {
             // @ts-ignore
             wrapper(updateUser(...data), "updateUser");
+            return true;
+        }
+        case "attach-user": {
+            // @ts-ignore
+            wrapper(attachUser(...data), "attachUser");
             return true;
         }
         case "delete-user": {

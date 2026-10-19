@@ -9,7 +9,7 @@ import { MetaDataServer } from "../parts/MetaDataServer";
 import { Button } from "../parts/Button";
 import styles from "./GroupsPanel.module.css";
 import { LuDownload, LuFolderPlus, LuGripVertical, LuListCheck, LuListPlus, LuRefreshCw, LuTrash2, LuUpload, LuUserPlus } from "react-icons/lu";
-import { deleteGroup, updateGroup } from "../protocol";
+import { attachUser, deleteGroup, updateGroup } from "../protocol";
 
 /**
  * @param {Object} options
@@ -122,6 +122,13 @@ function SingleGroup({ group, accounts, users }) {
     const [fold, setFold] = useState(false);
     const bodyRef = useRef(null);
     const svgRef = useRef(null);
+    const addUser = useCallback(async () => {
+        await attachUser({ accounts: [], display_name: { type: "fixed", value: "新用户" } }, group.id);
+        // const user = await updateUser({ accounts: [], display_name: { type: "fixed", value: "新用户" } });
+        // const nx = structuredClone(group);
+        // nx.members.push(user.id);
+        // await updateGroup(nx);
+    }, [group]);
     const deleteSelf = useCallback(async () => {
         await deleteGroup(group.id);
     }, []);
@@ -157,7 +164,7 @@ function SingleGroup({ group, accounts, users }) {
                     {group.name}
                 </div>
                 <Button><LuListCheck size={15} /></Button>
-                <Button><LuUserPlus size={15} /></Button>
+                <Button><LuUserPlus onClick={addUser} size={15} /></Button>
                 <Button className={styles.danger} onClick={deleteSelf}><LuTrash2 size={15} /></Button>
             </div>
             <div ref={bodyRef} className={styles.group_body}>
