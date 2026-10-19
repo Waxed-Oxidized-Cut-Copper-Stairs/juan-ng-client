@@ -17,5 +17,5 @@
 
 .button:active {
     border-color: var(--focused-frame);
-    background-color: var(--dim-dim-background);
+    background-color: var(--focused-frame);
 }
