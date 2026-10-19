@@ -140,6 +140,24 @@ export class ItemDB {
         });
     }
     /**
+     * 删除一个 id 对应的值
+     * @param {InternalID} id
+     * @returns {Promise<void>}
+     */
+    async del(id) {
+        return new Promise((resolve, reject) => {
+            if (!this.#db) {
+                reject();
+                return;
+            }
+            const tx = this.#db.transaction(this.#storekey, "readwrite");
+            tx.objectStore(this.#storekey).delete(id);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
+        });
+    }
+    /**
      * @overload
      * @param {InternalID} id
      * @returns {Promise<T | undefined>}
