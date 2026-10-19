@@ -8,7 +8,7 @@ import { TimeLabel } from "../parts/TimeLabel";
 import { MetaDataServer } from "../parts/MetaDataServer";
 import { Button } from "../parts/Button";
 import styles from "./GroupsPanel.module.css";
-import { LuGripVertical, LuListPlus, LuMerge, LuMove, LuRefreshCw, LuSplit, LuTrash2, LuUserPlus } from "react-icons/lu";
+import { LuDownload, LuFolderPlus, LuGripVertical, LuListCheck, LuListPlus, LuRefreshCw, LuTrash2, LuUpload, LuUserPlus } from "react-icons/lu";
 
 /**
  * @param {Object} options
@@ -152,8 +152,7 @@ function SingleGroup({ group, accounts, users }) {
                     <span className={styles.info}>#{group.id}</span>
                     {group.name}
                 </div>
-                <Button><LuMerge size={15} /></Button>
-                <Button><LuSplit size={15} /></Button>
+                <Button><LuListCheck size={15} /></Button>
                 <Button><LuUserPlus size={15} /></Button>
                 <Button className={styles.danger}><LuTrash2 size={15} /></Button>
             </div>
@@ -207,19 +206,23 @@ function Main({ busId, accounts, users, groups, order }) {
     }, [busId, focusOn]);
     return (
         <div className={styles.main}>
-            <div>
-                <LineEditStyledForSearch>
-                    <LineEdit
-                        ref={searchRef}
-                        text={searchText}
-                        setText={setSearchText}
-                        placeholder={"键入以搜索"}
-                        onReturn={attemptAdd} />
-                </LineEditStyledForSearch>
-                <div>
-                    搜索的账号如果不存在，可以按下回车创建
-                    {errorText.length !== 0 && (<span className={styles.error}>错误：{errorText}</span>)}
+            <div className={styles.header}>
+                <div className={styles.header_search}>
+                    <LineEditStyledForSearch>
+                        <LineEdit
+                            ref={searchRef}
+                            text={searchText}
+                            setText={setSearchText}
+                            placeholder={"搜索或添加"}
+                            onReturn={attemptAdd} />
+                    </LineEditStyledForSearch>
                 </div>
+                <Button className={styles.header_button}><LuFolderPlus size={24} /></Button>
+                <Button className={styles.header_button}><LuUpload size={24} /></Button>
+                <Button className={styles.header_button}><LuDownload size={24} /></Button>
+            </div>
+            <div>
+                {errorText.length !== 0 && (<span className={styles.error}>错误：{errorText}</span>)}
             </div>
             <div className={styles.body}>
                 <div className={styles.container}>
