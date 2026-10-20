@@ -97,7 +97,7 @@ export class MainloopFrame {
             try {
                 await this.#sleep();
                 const abort = new AbortController();
-                const timerId = setTimeout(() => abort.abort(), this.#timeout);
+                const timerId = setTimeout(() => abort.abort(`fetch timeout after ${this.#timeout} milliseconds.`), this.#timeout);
                 try {
                     const url = this.#urlConstructor(account);
                     log(`MainloopFrame(${this.#platform}).fetch`, url);
@@ -146,7 +146,7 @@ export class MainloopFrame {
         try {
             await this.#sleep();
             const abort = new AbortController();
-            const timerId = setTimeout(() => abort.abort(), this.#timeout);
+            const timerId = setTimeout(() => abort.abort(`fetch timeout after ${this.#timeout} milliseconds.`), this.#timeout);
             try {
                 await fetch(url, { signal: abort.signal }).then(
                     async (resp) => {
