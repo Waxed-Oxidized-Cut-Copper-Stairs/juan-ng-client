@@ -105,7 +105,7 @@ export function SingleUser({ user, accounts }) {
                     <span className={styles.info}>#{user.id}</span>
                     {user.display_name.value}
                 </div>
-                <Button><LuListPlus onClick={addAccount} size={15} /></Button>
+                <Button onClick={addAccount}><LuListPlus size={15} /></Button>
                 <Button className={styles.danger} onClick={deleteSelf}><LuTrash2 size={15} /></Button>
             </div>
             <div ref={bodyRef} className={styles.user_body}>
@@ -171,7 +171,7 @@ function SingleGroup({ group, accounts, users }) {
                     {group.name}
                 </div>
                 <Button><LuListCheck size={15} /></Button>
-                <Button><LuUserPlus onClick={addUser} size={15} /></Button>
+                <Button onClick={addUser}><LuUserPlus size={15} /></Button>
                 <Button className={styles.danger} onClick={deleteSelf}><LuTrash2 size={15} /></Button>
             </div>
             <div ref={bodyRef} className={styles.group_body}>
