@@ -13,5 +13,5 @@
 }
 
 .for_search:focus {
-    outline-color: var(--focused-blue);
+    outline-color: var(--emphasize-blue);
 }
