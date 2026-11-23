@@ -123,11 +123,11 @@ function DropBox() {
         })();
     }, [pid]);
     useEffect(() => {
-        // if (!dropboxRef.current) return;
-        // const unload = registerRoot(dropboxRef.current);
-        // return () => {
-        //     unload();
-        // }
+        if (!dropboxRef.current) return;
+        const unload = registerRoot(dropboxRef.current);
+        return () => {
+            unload();
+        }
     }, []);
     useLayoutEffect(() => {
         if (!visible || !dropboxRef.current || !current) return;
@@ -228,11 +228,11 @@ function DropBox() {
 function Card({ pid }) {
     const cardRef = useRef(null);
     useEffect(() => {
-        // if (!cardRef.current) return;
-        // const unload = registerRoot(cardRef.current);
-        // return () => {
-        //     unload();
-        // }
+        if (!cardRef.current) return;
+        const unload = registerRoot(cardRef.current);
+        return () => {
+            unload();
+        }
     }, []);
     return (
         <>
@@ -278,8 +278,7 @@ function TrainingEntry({ element, setTrainingVisible }) {
         node.addEventListener("click", () => {
             setTrainingVisible(false);
         }, { signal: abort.signal });
-        // const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
-        const unload = () => { };
+        const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
         return () => {
             abort.abort();
             unload();
@@ -339,8 +338,7 @@ function Training() {
         const node = document.querySelector("main>.main-content");
         const old = node.style.display;
         node.style.display = "none";
-        // const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
-        const unload = () => { };
+        const unload = rootRef.current ? registerRoot(rootRef.current) : (() => { });
         return () => {
             node.style.display = old;
             unload();
